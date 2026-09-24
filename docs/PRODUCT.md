@@ -1,6 +1,6 @@
 # GrowUP product
 
-Status: planning foundation; no application is implemented. “Confirmed” means required by the product vision, not necessarily part of the first release. Architecture and entity designs in the other documents are proposals unless explicitly identified as requirements.
+Status: planning foundation and minimal application scaffold; no product features are implemented. “Confirmed” means required by the product vision, not necessarily part of the first release. Architecture and entity designs in the other documents are proposals unless explicitly identified as requirements.
 
 ## Vision
 
@@ -33,4 +33,4 @@ Achievements, points, levels, leaderboards, referrals, creator/platform analytic
 - Discovery ranking/eligibility, DM contact permissions, global chat audience, moderation responsibility, age policy, and retention/deletion rules.
 - Location visibility audience, precision choices, and rules for revealing private meetup addresses.
 
-Resolve decisions before implementing the affected behavior. See [ROADMAP](ROADMAP.md) for sequencing; this task authorizes documentation only.
+Resolve decisions before implementing the affected behavior. See [ROADMAP](ROADMAP.md) for sequencing; product implementation requires an approved task scope.

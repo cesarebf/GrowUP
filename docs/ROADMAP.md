@@ -1,6 +1,6 @@
 # GrowUP roadmap
 
-Status: proposed sequence, not a promise of release dates or authorization to implement. The current task delivers documentation and secret-file ignore rules only. Confirm scope and unresolved decisions before each phase; build only the entities needed then.
+Status: proposed sequence, not a promise of release dates or authorization to implement. Planning and the minimal application scaffold are in place; Phase 1 product features remain unimplemented. Confirm scope and unresolved decisions before each phase; build only the entities needed then.
 
 Security, accessibility, authorization, and relevant tests belong to every phase. Basic moderation and operational controls must exist before exposing the associated features to real users.
 
@@ -19,6 +19,4 @@ Security, accessibility, authorization, and relevant tests belong to every phase
 
 ## Recommended exact next task
 
-After approval: initialize only the minimal Next.js App Router scaffold with strict TypeScript, Tailwind CSS, and shadcn/ui setup; choose and record a supported Node.js version and one package manager; add a lockfile, lint/typecheck/build scripts, placeholder-only environment documentation, and GitHub CI for those checks. Use a neutral GrowUP placeholder page and verify a production build. Add no authentication flows, database migrations, Stripe integration, or product features in that scaffold task, and make no commit unless requested.
-
-Then resolve the Phase 1 product/access decisions in [PRODUCT](PRODUCT.md) before designing the first schema migration and implementing Auth/Communities.
+After review and approval, commit the validated scaffold, including its npm lockfile. Then resolve and document the Phase 1 access model: community visibility and joining, initial roles and ownership, profile privacy, and initial authentication methods. Produce an authorization matrix and an agreed first Auth/Communities slice before adding Supabase or creating the first schema migration. Keep Stripe and other later phases out of that decision task.

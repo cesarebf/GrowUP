@@ -1,6 +1,6 @@
 # GrowUP architecture
 
-Status: proposed implementation direction. No application, infrastructure, or schema is created by this plan.
+Status: proposed implementation direction beyond the minimal Next.js/TypeScript/Tailwind/shadcn/ui scaffold. No backend integration, deployed infrastructure, or database schema exists yet. See [README](../README.md) for the current setup and validation commands.
 
 ## Shape and boundaries
 

@@ -5,7 +5,7 @@ GrowUP means “Group + Grow”. Read [PRODUCT](docs/PRODUCT.md) and the relevan
 ## Scope and workflow
 
 - Inspect repository files and `git status` before work. Preserve existing user changes and keep edits within the requested scope.
-- This repository currently contains planning only. Do not initialize the application, add migrations, integrate services, or deploy until the user approves implementation. Do not commit unless requested.
+- This repository currently contains planning and a minimal application scaffold. Implement only the approved task scope; migrations, service integrations, deployment, and product features require authorization. Do not commit unless requested.
 - Keep documentation concise and update it when an accepted decision changes. Explain material assumptions, unresolved decisions, verification, and limitations.
 - Prefer the simplest implementation for the approved phase. Do not build future features, generic plugin frameworks, microservices, or extra infrastructure speculatively.
 
@@ -20,3 +20,4 @@ GrowUP means “Group + Grow”. Read [PRODUCT](docs/PRODUCT.md) and the relevan
 - Make sensitive mutations and payment processing auditable and idempotent where needed. Handle errors explicitly; expose safe user messages and useful redacted diagnostics.
 - Keep location sharing opt-in and removable, with approximate location preferred. Protect DMs, private media, and member-only content across database, storage, realtime, caches, and logs.
 - Run checks appropriate to the change. Once implementation begins, test authorization failures and cross-tenant access as well as successful behavior. Do not claim checks passed if they were not run.
+- Use the Node version in `.nvmrc` and the npm version pinned in `package.json`. Install with `npm ci`; keep `package-lock.json` synchronized. Validate application changes with `npm run lint`, `npm run typecheck`, and `npm run build`.

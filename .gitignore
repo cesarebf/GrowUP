@@ -5,3 +5,17 @@
 *.env.*
 !.env.example
 !.env.*.example
+
+# Dependencies and generated output.
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Local deployment metadata and diagnostics.
+.vercel/
+*.log
+.DS_Store
+Thumbs.db
