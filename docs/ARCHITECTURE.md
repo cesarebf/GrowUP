@@ -21,6 +21,8 @@ Next.js documents server data boundaries and the need to authorize server entry 
 
 ## Tenancy and authorization
 
+The [approved Phase 1 authorization matrix](PHASE_1_DECISIONS.md) guides server authorization and database allow/deny tests. Current implementation is limited to email/password Auth and private profiles; unresolved future policy details must not silently become behavior. Profiles use stable Auth user IDs to allow later providers without coupling identity to email/password.
+
 A community is the tenant boundary. A user may belong to many communities. Global identity, discovery metadata, user-to-user DMs, and creator billing relationships have explicit scopes rather than a fabricated community owner.
 
 Resolve the requested community and verify current membership, role, and entitlement for each action. A route slug or submitted ID is a locator, never authorization. Carry tenant context into reads, mutations, media access, and any future background work. Use database constraints to prevent cross-community parent/child links.

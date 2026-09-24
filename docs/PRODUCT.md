@@ -18,6 +18,9 @@ GrowUP (“Group + Grow”) is an accessible, affordable, feature-rich community
 - Three creator arrangements are required: paid membership plus a monthly creator subscription and 0% platform transaction fee; paid membership plus configurable revenue share without a required monthly creator subscription; free membership plus a monthly creator subscription. Payment-processing fees remain separate. See [PAYMENTS](PAYMENTS.md).
 - Member location sharing is voluntary, removable, and approximate by default, to support local meetups. Precise/private locations must not leak through public surfaces.
 - Security, correct authorization, privacy, maintainability, and simplicity govern implementation. Use the selected stack in [ARCHITECTURE](ARCHITECTURE.md).
+- Creators explicitly select public, unlisted, or private visibility; no implicit visibility default. Public communities appear in GrowUP discovery, unlisted communities are accessed by link, and private communities are not publicly discoverable. Content stays member-gated by default.
+- Users may own multiple communities; each community has exactly one owner and can have multiple admins/moderators. Transfers require acceptance; the previous owner becomes admin unless explicitly removed.
+- The current Auth slice uses email/password, verified email, recovery, persistent secure sessions, logout, and private profiles. Google OAuth is deferred; platform administrators will eventually require MFA.
 
 ## Future ideas, not current implementation scope
 
@@ -25,9 +28,11 @@ Achievements, points, levels, leaderboards, referrals, creator/platform analytic
 
 ## Unresolved product decisions
 
+The [approved Phase 1 decision matrix](PHASE_1_DECISIONS.md) records the accepted policies and remaining details. Sensitive account data is private; future community-facing profiles may expose more than globally public profiles, and location consent remains separate.
+
 - Initial audience, launch countries/languages/currencies, measurable affordability goals, and the exact first-release scope.
-- Community visibility (public/unlisted/private), join/invite/approval rules, public previews, and which directory/profile fields are discoverable.
-- Initial roles and powers, ownership transfer, and whether creators can administer communities as a team.
+- Exact visibility/admission combinations, invitation expiry/reapplication rules, public previews, and discoverable directory/profile fields.
+- Operational moderation/support procedures, unavailable-owner recovery, community closure, and community-staff MFA.
 - Creator billing per community versus per creator/account; plan limits, prices, rates, trials, and changes between arrangements.
 - Whether members can hold multiple tiers, whether higher tiers inherit benefits, and upgrade/downgrade, cancellation, refund, and delinquency rules.
 - Discovery ranking/eligibility, DM contact permissions, global chat audience, moderation responsibility, age policy, and retention/deletion rules.

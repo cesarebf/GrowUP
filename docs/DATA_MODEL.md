@@ -7,7 +7,7 @@ Status: high-level proposal, not a migration or a commitment to exact table name
 | Area | Major entities and relationships |
 | --- | --- |
 | Identity | Supabase Auth user has one application profile. Separate public display fields from private account/preferences data. One user can create and join many communities. |
-| Communities | Community has an owner relationship, slug, description, cover, visibility, and validated default landing feature. Ownership transfer/team semantics are unresolved. Categories link many communities for discovery. |
+| Communities | Community has exactly one owner, slug, description, cover, explicitly selected visibility (no silent default), and validated default landing feature. Users may own many communities; transfers require acceptance and leave the former owner as admin unless explicitly removed. Categories link many communities for discovery. |
 | Membership and roles | Membership links user and community with lifecycle state; one current membership per pair, with history where needed. Community role assignments attach to that membership. Administrative roles are separate from commercial tiers. |
 | Tiers and benefits | Community has many membership tiers; tiers have explicit entitlement grants such as access to a course or channel. Tier assignments link memberships to tiers with effective dates/source. Concurrent tiers and inheritance remain unresolved. |
 | Prices | Tier has many versioned price options: currency, integer minor-unit amount, interval unit/count, availability, and provider references. Free access does not require a fabricated paid subscription. |

@@ -6,7 +6,7 @@ Security, accessibility, authorization, and relevant tests belong to every phase
 
 | Phase | Intended scope and exit condition |
 | --- | --- |
-| 1 — Foundation / Auth / Communities | First approve the minimal scaffold and resolve visibility, joining, initial roles, and ownership rules before schema work. Establish strict TypeScript, shared UI, environment handling, CI, Supabase Auth, profiles, communities, memberships, migrations, and RLS incrementally. Exit with tested tenant isolation and authorized create/join/manage flows. |
+| 1 — Foundation / Auth / Communities | The scaffold is committed and pushed; the Phase 1 core decisions are approved. Implement email/password Supabase Auth and private profiles first, with verification/recovery, secure sessions, migrations, and RLS tests. Google is deferred. Communities/admission/roles require a separate approved slice. |
 | 2 — Forum / Community experience | Posts, comments, member directory, community settings, and configurable landing behavior for available features. Basic discovery cards/categories/search and an agreed initial recommendation rule. Exit with coherent permissions, safe content/media handling, and basic reporting/moderation. |
 | 3 — Courses | Modules, lessons, content/media, completion/progress, and explicit resource entitlements. Establish the minimum tier/access representation needed for courses without Stripe or checkout; resolve assignment rules first. Exit with tested access restrictions and an approved video-delivery approach. |
 | 4 — Chat / DMs / Realtime | Community channels, durable messages, private DMs, and authorized realtime/presence. Global discussion only after its audience is agreed. Exit with blocking/reporting, rate limits, participant isolation, and verified permission revocation. |
@@ -19,4 +19,4 @@ Security, accessibility, authorization, and relevant tests belong to every phase
 
 ## Recommended exact next task
 
-After review and approval, commit the validated scaffold, including its npm lockfile. Then resolve and document the Phase 1 access model: community visibility and joining, initial roles and ownership, profile privacy, and initial authentication methods. Produce an authorization matrix and an agreed first Auth/Communities slice before adding Supabase or creating the first schema migration. Keep Stripe and other later phases out of that decision task.
+Commit and push the [approved Phase 1 planning checkpoint](PHASE_1_DECISIONS.md), then implement the authorized Supabase email/password Auth + private profile slice. Validate lint, types, tests, build, secret handling, and RLS isolation. Leave that implementation uncommitted for review. No community, role, membership, payment, OAuth, or location functionality is included.
