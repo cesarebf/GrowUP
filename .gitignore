@@ -1,0 +1,7 @@
+# Local environment configuration may contain secrets.
+.env
+.env.*
+*.env
+*.env.*
+!.env.example
+!.env.*.example
