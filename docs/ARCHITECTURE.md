@@ -1,6 +1,6 @@
 # GrowUP architecture
 
-Status: proposed implementation direction beyond the minimal Next.js/TypeScript/Tailwind/shadcn/ui scaffold. No backend integration, deployed infrastructure, or database schema exists yet. See [README](../README.md) for the current setup and validation commands.
+Status: the Next.js/TypeScript/Tailwind/shadcn/ui scaffold and Supabase Auth/private-profile foundation are implemented locally, including a checked-in migration source and isolation tests. Hosted configuration and validation remain pending; architecture beyond this slice is proposed. See [README](../README.md) and [Auth setup](AUTH_SETUP.md).
 
 ## Shape and boundaries
 

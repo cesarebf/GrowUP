@@ -1,6 +1,6 @@
 # GrowUP
 
-Group + Grow. A minimal application scaffold; product features are not implemented.
+Group + Grow. Next.js application with a Supabase email/password Auth and private account profile foundation. Community and commercial features remain deferred.
 
 ## Local development
 
@@ -11,23 +11,27 @@ npm ci
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000). The scaffold requires no environment variables or external service credentials. `.env.example` contains only an optional, currently unused application URL variable with an empty value. If environment configuration is needed later, copy it to ignored `.env.local`; never add secrets to `NEXT_PUBLIC_*` variables or committed files.
+Open [localhost:3000](http://localhost:3000). Copy `.env.example` to ignored `.env.local` and set `APP_URL` (locally `http://localhost:3000`), `NEXT_PUBLIC_SUPABASE_URL`, and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Use a separate development Supabase project and follow [Auth setup](docs/AUTH_SETUP.md) to apply the migration and configure email templates. No service-role key is needed. Without configuration, the homepage and local checks work; Auth is unavailable. Never commit credentials or put secrets in `NEXT_PUBLIC_*` variables.
 
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Start the development server. |
 | `npm run lint` | Run ESLint with the Next.js and TypeScript rules; warnings fail validation. |
 | `npm run typecheck` | Generate Next.js route types, then check strict TypeScript without emitting code. Works before the first build. |
+| `npm test` | Run Auth, SSR cookie, and PostgreSQL grant/RLS tests without hosted credentials. |
 | `npm run build` | Create the production build. |
 | `npm start` | Serve the production build locally. |
 
-GitHub Actions runs `npm ci`, lint, typecheck, and build for pull requests and pushes to `main`. Generated output and dependencies are ignored. Keep `package-lock.json` committed and use npm for dependency changes.
+GitHub Actions runs `npm ci`, lint, typecheck, tests, and build for pull requests and pushes to `main`. Generated output and dependencies are ignored. Keep `package-lock.json` synchronized and use npm for dependency changes.
 
 ## Structure and scope
 
-- `src/app/`: App Router layout, minimal homepage, and global styles.
+- `src/app/`: Homepage, signup/sign-in, verification/recovery, protected account page, and Server Actions.
 - `components.json`: shadcn/ui component generation and alias configuration.
-- `src/lib/`: shared styling utility installed by shadcn/ui.
+- `src/lib/`: server Auth/profile service, Supabase clients/session helpers, and styling utility.
+- `src/proxy.ts`: Auth session refresh and cookie forwarding.
+- `supabase/migrations/`: private profile schema, triggers, grants, and RLS.
+- `tests/`: Node test runner; PGlite executes the migration against PostgreSQL locally.
 - `docs/`: product requirements, proposed architecture/data/payments/security, and phased roadmap.
 - `AGENTS.md`: durable instructions for repository work.
 
@@ -39,4 +43,6 @@ Tooling limitation: Next.js 16.3.6's lint plugins require ESLint 9 and TypeScrip
 
 The native import resolver uses npm's optional platform binaries. Its fallback postinstall script is explicitly denied in `package.json`; installs do not need that script on the supported Windows/Linux platforms. Keep optional dependencies enabled.
 
-Supabase, Stripe, authentication, communities, and other product features are intentionally deferred. Resolve the Phase 1 access decisions in [PRODUCT.md](docs/PRODUCT.md) before schema or authentication implementation.
+The Supabase packages provide managed Auth and SSR cookie handling; `server-only` protects server modules; PGlite is a development-only dependency for actual SQL security tests. No new framework or service-role client is introduced.
+
+Implemented: email/password signup, verification/resend, sign-in/out, recovery, persistent sessions, protected account access, and an optional private display name. Confirmation and recovery require an explicit form submission, then a fresh sign-in. Hosted Auth, email delivery, and deployment still require the [manual setup and live checks](docs/AUTH_SETUP.md). Google OAuth, public/community/location profiles, communities, roles, memberships, Stripe, courses, forum, chat, DMs, and creator plans remain deferred under [PHASE_1_DECISIONS](docs/PHASE_1_DECISIONS.md).

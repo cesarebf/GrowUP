@@ -1,6 +1,6 @@
 # GrowUP product
 
-Status: planning foundation and minimal application scaffold; no product features are implemented. “Confirmed” means required by the product vision, not necessarily part of the first release. Architecture and entity designs in the other documents are proposals unless explicitly identified as requirements.
+Status: planning foundation, application scaffold, and email/password Auth with private profiles are implemented locally; hosted setup/validation remains pending. “Confirmed” means required by the product vision, not necessarily part of the first release. Architecture and entity designs beyond this slice remain proposals unless explicitly identified as requirements.
 
 ## Vision
 

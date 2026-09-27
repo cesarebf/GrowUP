@@ -1,12 +1,12 @@
 # GrowUP roadmap
 
-Status: proposed sequence, not a promise of release dates or authorization to implement. Planning and the minimal application scaffold are in place; Phase 1 product features remain unimplemented. Confirm scope and unresolved decisions before each phase; build only the entities needed then.
+Status: proposed sequence, not a promise of release dates or authorization to implement. Planning, the scaffold, and the email/password Auth/private-profile slice are implemented locally. Hosted setup/validation and implementation review remain pending. Confirm scope and unresolved decisions before each further phase.
 
 Security, accessibility, authorization, and relevant tests belong to every phase. Basic moderation and operational controls must exist before exposing the associated features to real users.
 
 | Phase | Intended scope and exit condition |
 | --- | --- |
-| 1 — Foundation / Auth / Communities | The scaffold is committed and pushed; the Phase 1 core decisions are approved. Implement email/password Supabase Auth and private profiles first, with verification/recovery, secure sessions, migrations, and RLS tests. Google is deferred. Communities/admission/roles require a separate approved slice. |
+| 1 — Foundation / Auth / Communities | The Phase 1 core decisions are approved. Email/password Auth and private profiles are implemented locally with verification/recovery, sessions, a migration, and RLS tests; hosted setup/validation remains pending. Google is deferred. Communities/admission/roles require a separate approved slice. |
 | 2 — Forum / Community experience | Posts, comments, member directory, community settings, and configurable landing behavior for available features. Basic discovery cards/categories/search and an agreed initial recommendation rule. Exit with coherent permissions, safe content/media handling, and basic reporting/moderation. |
 | 3 — Courses | Modules, lessons, content/media, completion/progress, and explicit resource entitlements. Establish the minimum tier/access representation needed for courses without Stripe or checkout; resolve assignment rules first. Exit with tested access restrictions and an approved video-delivery approach. |
 | 4 — Chat / DMs / Realtime | Community channels, durable messages, private DMs, and authorized realtime/presence. Global discussion only after its audience is agreed. Exit with blocking/reporting, rate limits, participant isolation, and verified permission revocation. |
@@ -19,4 +19,4 @@ Security, accessibility, authorization, and relevant tests belong to every phase
 
 ## Recommended exact next task
 
-Commit and push the [approved Phase 1 planning checkpoint](PHASE_1_DECISIONS.md), then implement the authorized Supabase email/password Auth + private profile slice. Validate lint, types, tests, build, secret handling, and RLS isolation. Leave that implementation uncommitted for review. No community, role, membership, payment, OAuth, or location functionality is included.
+Review the uncommitted Auth/private-profile implementation, then complete [Supabase setup and live checks](AUTH_SETUP.md). Commit/push only when explicitly requested. No community, role, membership, payment, OAuth, or location functionality is included or authorized as an automatic next step.

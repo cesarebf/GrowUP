@@ -34,5 +34,7 @@ jobs:
         run: npm run lint
       - name: Typecheck
         run: npm run typecheck
+      - name: Auth and database policy tests
+        run: npm test
       - name: Build
         run: npm run build
