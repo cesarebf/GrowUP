@@ -1,6 +1,6 @@
 # GrowUP
 
-Group + Grow. Next.js application with a Supabase email/password Auth and private account profile foundation. Community and commercial features remain deferred.
+Group + Grow. Next.js application with Supabase email/password Auth, private account profiles, and a minimal community foundation. Admission workflows and commercial features remain deferred.
 
 ## Local development
 
@@ -18,7 +18,7 @@ Open [localhost:3000](http://localhost:3000). Copy `.env.example` to ignored `.e
 | `npm run dev` | Start the development server. |
 | `npm run lint` | Run ESLint with the Next.js and TypeScript rules; warnings fail validation. |
 | `npm run typecheck` | Generate Next.js route types, then check strict TypeScript without emitting code. Works before the first build. |
-| `npm test` | Run Auth, SSR cookie, and PostgreSQL grant/RLS tests without hosted credentials. |
+| `npm test` | Run Auth/community services, SSR cookie, and PostgreSQL grant/RLS/invariant tests without hosted credentials. |
 | `npm run build` | Create the production build. |
 | `npm start` | Serve the production build locally. |
 
@@ -26,11 +26,11 @@ GitHub Actions runs `npm ci`, lint, typecheck, tests, and build for pull request
 
 ## Structure and scope
 
-- `src/app/`: Homepage, signup/sign-in, verification/recovery, protected account page, and Server Actions.
+- `src/app/`: Homepage, Auth/account routes, community creation/listing, `/c/{slug}` landings, and Server Actions.
 - `components.json`: shadcn/ui component generation and alias configuration.
-- `src/lib/`: server Auth/profile service, Supabase clients/session helpers, and styling utility.
+- `src/lib/`: server Auth/profile and community services, validation, Supabase clients/session helpers, and styling utility.
 - `src/proxy.ts`: Auth session refresh and cookie forwarding.
-- `supabase/migrations/`: private profile schema, triggers, grants, and RLS.
+- `supabase/migrations/`: private profile and community schemas, triggers, grants, and RLS.
 - `tests/`: Node test runner; PGlite executes the migration against PostgreSQL locally.
 - `docs/`: product requirements, proposed architecture/data/payments/security, and phased roadmap.
 - `AGENTS.md`: durable instructions for repository work.
@@ -45,4 +45,6 @@ The native import resolver uses npm's optional platform binaries. Its fallback p
 
 The Supabase packages provide managed Auth and SSR cookie handling; `server-only` protects server modules; PGlite is a development-only dependency for actual SQL security tests. No new framework or service-role client is introduced.
 
-Implemented: email/password signup, verification/resend, sign-in/out, recovery, persistent sessions, protected account access, and an optional private display name. Confirmation and recovery require an explicit form submission, then a fresh sign-in. Hosted Auth, email delivery, and deployment still require the [manual setup and live checks](docs/AUTH_SETUP.md). Google OAuth, public/community/location profiles, communities, roles, memberships, Stripe, courses, forum, chat, DMs, and creator plans remain deferred under [PHASE_1_DECISIONS](docs/PHASE_1_DECISIONS.md).
+Core email/password Auth, sessions, private profiles, and RLS are committed and live-validated. Password-recovery completion is deferred until custom SMTP/domain infrastructure is available; the existing recovery implementation remains in place. See [Auth setup](docs/AUTH_SETUP.md).
+
+The locally implemented [community foundation](docs/COMMUNITY_FOUNDATION.md) adds `/communities/new`, `/communities`, and `/c/{slug}`, backed by a second migration. It requires explicit visibility and join-policy choices and atomically creates one owner membership. Apply reviewed migrations in order to a development project before exercising these pages. Private communities expose no metadata to nonmembers. No joining, approval, invitation, role-management, or transfer workflow exists yet. Google OAuth, public/community/location profiles, Stripe, courses, forum, chat, DMs, and creator plans remain deferred.

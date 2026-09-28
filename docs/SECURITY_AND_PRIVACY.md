@@ -2,6 +2,8 @@
 
 Status: design principles and release gates. Implement and verify protections with each feature; the final hardening phase does not postpone basic security.
 
+Implemented community boundary: [Community foundation](COMMUNITY_FOUNDATION.md) documents member-only table reads, own-membership RLS, atomic identity-derived creation, owner integrity/deletion guards, and the limited exact-slug landing projection. Private communities disclose no metadata to nonmembers in this slice. No admission or role mutation API exists yet.
+
 ## Tenant isolation and authorization
 
 - Treat community IDs, route parameters, object IDs, role fields, price IDs, and uploaded metadata as untrusted. Verify identity, current membership, role, resource scope, and required entitlement server-side for each sensitive action.

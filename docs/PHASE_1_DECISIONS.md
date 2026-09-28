@@ -1,6 +1,6 @@
 # GrowUP Phase 1 authorization and product decisions
 
-Status: **approved planning checkpoint, with the product owner's amendments**. The current implementation scope is email/password Auth and private profiles only. Community policies guide future work; no communities, roles, memberships, payments, OAuth, or location features are authorized in this slice. Remaining detailed decisions are listed at the end.
+Status: **approved planning checkpoint, with the product owner's amendments**. Core Auth/private profiles are committed and live-validated; recovery completion awaits custom SMTP/domain infrastructure. The separately authorized [community foundation](COMMUNITY_FOUNDATION.md) implements creation/viewing, ownership, memberships/roles, and visibility/join-policy configuration. Admission and role-management workflows remain deferred. Remaining detailed decisions are listed at the end.
 
 ## Visibility and joining
 
@@ -72,12 +72,12 @@ Confirm provider setup and production email delivery before release. Technical r
 
 ## Remaining decisions and authorized implementation slice
 
-Resolve these before the affected future implementation; they do not block email/password Auth and private profiles:
+Resolve these before the affected future implementation; they do not block the implemented Auth or community foundation:
 
-1. Visibility/admission combinations, nonmember preview fields, invitation expiry, and rejected-request reapplication rules.
+1. Admission eligibility for visibility/join-policy combinations, future preview extensions, invitation expiry, and rejected-request reapplication rules. The foundation stores all nine configurations without admitting users; private nonmembers receive no metadata. Public/unlisted projections are defined in the implementation document.
 2. Operational staff access to reported content, support recovery, and community-owner/admin MFA policy. Platform administrators will require MFA.
 3. Community closure, retention, and unavailable-owner recovery procedures.
 4. Exact globally public versus broader community-visible profile fields. Sensitive account data stays private; public exposure is conservative and future location is separate and opt-in.
 5. When to add Google sign-in and its provider/account-linking configuration.
 
-Implement only Supabase email/password signup, verification, sign-in/out, password recovery, persistent secure sessions, protected routes, and minimal private profiles. Include environment separation, a profile migration with grants/RLS, and allow/deny tests. Keep account data separate from future public/community profile data without creating those future features. Community admission/roles follow separately. Do not add Google OAuth, payments, chat, location, or courses, and do not commit the Auth implementation until requested.
+The current authorized slice adds only community creation/viewing, a private membership list, roles/ownership integrity, and explicit visibility/join-policy configuration, with a migration and allow/deny tests. Keep the established Auth architecture and private profile boundary. Do not add admission, invitations, approvals, role management, ownership transfer, Google OAuth, payments, chat, location, or courses. Leave this community implementation uncommitted for review.

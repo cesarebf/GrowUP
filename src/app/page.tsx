@@ -10,6 +10,7 @@ export default function Home() {
           <Link href="/sign-in">Sign in</Link>
           <Link href="/sign-up">Create account</Link>
           <Link href="/account" prefetch={false}>Your account</Link>
+          <Link href="/communities" prefetch={false}>Your communities</Link>
         </nav>
       </div>
     </main>

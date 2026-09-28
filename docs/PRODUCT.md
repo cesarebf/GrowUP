@@ -1,6 +1,6 @@
 # GrowUP product
 
-Status: planning foundation, application scaffold, and email/password Auth with private profiles are implemented locally; hosted setup/validation remains pending. “Confirmed” means required by the product vision, not necessarily part of the first release. Architecture and entity designs beyond this slice remain proposals unless explicitly identified as requirements.
+Status: core email/password Auth, sessions, private profiles, and RLS are committed and live-validated; password-recovery completion awaits custom SMTP/domain infrastructure. The [community foundation](COMMUNITY_FOUNDATION.md) is implemented locally, with creation/viewing, one owner, memberships/roles, and explicit visibility/join-policy configuration; admission workflows remain deferred. “Confirmed” means required by the product vision, not necessarily part of the first release. Architecture and entity designs beyond these slices remain proposals unless explicitly identified as requirements.
 
 ## Vision
 

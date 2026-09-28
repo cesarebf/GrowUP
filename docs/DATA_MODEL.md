@@ -2,7 +2,7 @@
 
 Status: high-level proposal, not a migration or a commitment to exact table names. Add entities only in their approved feature phase. Community is the tenant; identity and explicitly global features use separate access rules.
 
-Implemented exception: `public.private_profiles` holds only the Auth user ID, optional private display name, and creation timestamp, with owner-only grants/RLS. See [Auth setup](AUTH_SETUP.md) and the checked-in migration. The other entities below remain conceptual.
+Implemented tables: `public.private_profiles` holds the Auth user ID, optional private display name, and creation timestamp, with owner-only grants/RLS. The local community foundation adds `public.communities` and `public.community_memberships`, with a constrained single owner and explicit visibility/join policy. See [Auth setup](AUTH_SETUP.md) and [the implemented community schema/security model](COMMUNITY_FOUNDATION.md). Entities and fields beyond those slices below remain conceptual.
 
 ## Entities and relationships
 

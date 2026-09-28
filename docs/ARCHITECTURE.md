@@ -1,6 +1,6 @@
 # GrowUP architecture
 
-Status: the Next.js/TypeScript/Tailwind/shadcn/ui scaffold and Supabase Auth/private-profile foundation are implemented locally, including a checked-in migration source and isolation tests. Hosted configuration and validation remain pending; architecture beyond this slice is proposed. See [README](../README.md) and [Auth setup](AUTH_SETUP.md).
+Status: the Next.js/TypeScript/Tailwind/shadcn/ui scaffold and Supabase Auth/private-profile foundation are committed and core Auth is live-validated. Password-recovery completion awaits custom SMTP/domain infrastructure. The [community foundation](COMMUNITY_FOUNDATION.md) is implemented locally with a separate migration and isolation tests; its hosted validation remains pending. Architecture beyond these slices is proposed.
 
 ## Shape and boundaries
 
@@ -21,7 +21,7 @@ Next.js documents server data boundaries and the need to authorize server entry 
 
 ## Tenancy and authorization
 
-The [approved Phase 1 authorization matrix](PHASE_1_DECISIONS.md) guides server authorization and database allow/deny tests. Current implementation is limited to email/password Auth and private profiles; unresolved future policy details must not silently become behavior. Profiles use stable Auth user IDs to allow later providers without coupling identity to email/password.
+The [approved Phase 1 authorization matrix](PHASE_1_DECISIONS.md) guides server authorization and database allow/deny tests. Implementation covers email/password Auth, private profiles, and minimal community creation/read with ownership, membership roles, and visibility/admission configuration. Admission and role-management workflows remain deferred; unresolved future policy details must not silently become behavior. Profiles use stable Auth user IDs to allow later providers without coupling identity to email/password.
 
 A community is the tenant boundary. A user may belong to many communities. Global identity, discovery metadata, user-to-user DMs, and creator billing relationships have explicit scopes rather than a fabricated community owner.
 
