@@ -1,6 +1,6 @@
 # Phase 1 community foundation
 
-Community creation/viewing and ownership were committed and hosted-validated at `640ae28bd76b9e155ad92f3e6f15ec68065fd3e9`. The subsequent instant-join/voluntary-leave slice is local and uncommitted; its new migration has not been applied to hosted Supabase. Existing Auth/session/private-profile architecture is unchanged. Password-recovery completion remains deferred pending custom SMTP/domain infrastructure.
+Community creation/viewing, ownership, and instant join/voluntary leave are committed and hosted-validated through `c562567de466660e00b9b25377229b19940a4494`. Owner community settings are implemented locally for review; the settings migration has not been applied to hosted Supabase. Existing Auth/session/private-profile architecture is unchanged. Password-recovery completion remains deferred pending custom SMTP/domain infrastructure.
 
 ## Supported behavior
 
@@ -10,7 +10,8 @@ Community creation/viewing and ownership were committed and hosted-validated at 
 - Private nonmembers receive no metadata and the same unavailable page as a nonexistent slug. This is the conservative implementation for this slice; any future invitation preview needs an explicit field policy.
 - Eligible nonmembers can explicitly join public/unlisted + instant communities. Other admission combinations have no working Join control. Private nonmembers retain the unavailable page.
 - Current members, moderators, and admins can leave after explicit confirmation, regardless of admission policy. Leave deletes their current membership; repeat leave is safe. Owners see an explanation and no Leave control. Future ownership transfer/closure is required before owner departure.
-- Eligible former members can rejoin immediately under current instant-admission rules, always as `member`, never restoring staff roles. Approval requests, invitations, bans/restrictions systems, role management, transfers, settings edits, closure, discovery, and content features are deferred. Billing/entitlements and moderation/audit history remain separate future systems.
+- Eligible former members can rejoin immediately under current instant-admission rules, always as `member`, never restoring staff roles. Approval requests, invitations, bans/restrictions systems, role management, transfers, closure, discovery, and content features are deferred. Billing/entitlements and moderation/audit history remain separate future systems.
+- Only the current eligible owner can edit name, short description, visibility, and join policy in the settings section of `/c/{slug}`. Admins and moderators cannot edit settings in this slice. Slug editing remains deferred. Admission-policy/visibility changes retain all existing memberships and roles; private + instant remains storable but does not admit new members.
 - Slugs normalize outer spaces/case; stored slugs use 3–48 lowercase ASCII letters/numbers separated by single hyphens. Reserved names are `new`, `admin`, `api`, `auth`, `account`, `communities`, `settings`, `support`, `help`, `growup`, and `www`. UUIDs are durable identity; slugs can be changed by a future authorized workflow without changing references. No rename/history endpoint exists now.
 
 ## Implemented schema
@@ -18,6 +19,8 @@ Community creation/viewing and ownership were committed and hosted-validated at 
 Migration: `supabase/migrations/20260928000100_community_foundation.sql`, applied after the existing private-profile migration.
 
 Join/leave migration: `supabase/migrations/20260928000200_community_join_leave.sql`; adds two RPCs only, without changing existing tables, RLS, grants, constraints, or configurations.
+
+Settings migration: `supabase/migrations/20260928000300_community_settings.sql`; adds only the authenticated `update_community_settings` RPC and its restricted execution grant. Existing table grants, RLS, constraints, and admission RPCs remain unchanged.
 
 | Table | Columns / constraints |
 | --- | --- |
@@ -36,7 +39,7 @@ The Server Action validates identity through the established `getVerifiedUser`, 
 
 `get_community_landing` is an exact-slug projection, not a discovery/list RPC. Its explicit visibility/member check is necessary because it is a SECURITY DEFINER function. It never returns another user's role or sensitive identity. Private responses and membership lists are dynamic and use the existing session/no-cache path, without shared application caching. A direct link does not grant future content access.
 
-Definer functions use an empty `search_path` and schema-qualified relations. Public/anonymous/authenticated default execute grants are revoked before granting the intended RPCs (creation/join/leave to authenticated; landing to anonymous/authenticated). Trigger functions have no client execute grant. No service-role client or new dependencies are introduced. This follows the [Supabase function privilege guidance](https://supabase.com/docs/guides/database/functions).
+Definer functions use an empty `search_path` and schema-qualified relations. Public/anonymous/authenticated default execute grants are revoked before granting the intended RPCs (creation/join/leave/settings to authenticated; landing to anonymous/authenticated). Trigger functions have no client execute grant. No service-role client or new dependencies are introduced. This follows the [Supabase function privilege guidance](https://supabase.com/docs/guides/database/functions).
 
 ## Instant join and voluntary leave
 
@@ -48,10 +51,18 @@ Leave rejects owners and deletes only the actor's nonowner membership in the req
 
 The UI uses the existing server identity check, and the database repeats authorization atomically. Leave confirmation is required by both the form and Server Action service; direct authenticated RPC callers intentionally invoke the same narrow operation without a UI confirmation parameter. Errors/logs disclose no provider messages, private community metadata, or account content.
 
+## Owner community settings
+
+`update_community_settings(p_community_id uuid, p_settings jsonb)` derives the actor from `auth.uid()`, locks their Auth row, and rechecks current eligibility. It then exclusively locks only a community whose ID and current `owner_user_id` match the request and actor. Missing and unauthorized targets produce the same error. The locator is untrusted; ownership of one community never authorizes another. Ownership is checked again after waiting on a concurrent row update. This account → community lock order matches join/leave; their shared community locks serialize admission against settings changes.
+
+The settings object accepts only `name`, optional `description`, `visibility`, and `join_policy`, all strings. Unknown keys, nulls, nonobjects, and wrong types fail. Existing constraints validate the single atomic update: name is required and 1–80 characters; description is at most 500; both trim outer ASCII spaces and reject control characters. Omitted/blank description becomes an empty string. Visibility and join policy must exactly match their existing allowed values. Every combination remains storable. No update touches a slug, owner, membership, or role. The existing `updated_at` trigger records the update time; no settings history system is introduced. Concurrent valid saves use the last committed settings.
+
+The dynamic landing page renders the form only for the database-returned eligible owner role, without exposing owner identity. The Server Action independently verifies identity, rejects malformed/duplicate/unknown form fields (excluding React transport metadata), and calls the RPC with the cookie-bound client. A stale owner form cannot bypass database authorization. Explicit save shows safe errors or a success message and revalidates the current landing page and membership list. Other tabs see changes on their next request. Plain text is rendered with React escaping.
+
 ## Verification and release boundaries
 
-`tests/community-rls.test.mts` executes all three migrations in PGlite with Supabase-like permissive starting grants and emulated Auth identity. It verifies foundation invariants plus all nine admission combinations, current account eligibility, policy changes before submission, membership uniqueness/retries, role preservation, rejoin-as-member, each nonowner departure, owner rejection, private-access revocation, caller/tenant scoping, indistinguishable inaccessible targets, and RPC privileges. `tests/community.test.mts` covers the server service, forged fields, confirmation, safe redirects/errors, and eligibility. Existing Auth/profile/session tests remain required.
+`tests/community-rls.test.mts` executes all four migrations in PGlite with Supabase-like permissive starting grants and emulated Auth identity. It verifies foundation/join/leave invariants and owner-only settings: member/moderator/admin/other-owner denials, eligibility and stale ownership, strict input validation, immutable ownership/slug, unchanged memberships, cross-tenant isolation, atomic failures, execution restrictions, and direct-write denial. All nine settings combinations are tested against subsequent admission, including public + instant → private + instant. `tests/community.test.mts` covers the server service, forged/duplicate/file/unknown fields, normalization, safe errors, and eligibility. Existing Auth/profile/session tests remain required.
 
-Local SQL tests do not verify hosted PostgREST, Auth administration, browser flows, or independent-session lock races. Concurrent test submissions are queued on PGlite's single backend. Next, review this uncommitted slice; only with separate authorization apply the new migration to development Supabase and validate join → redirect → list, confirmation → leave → access revocation, owner/private denials, two-user isolation, direct REST/RPC permissions, and independent-session duplicate join, join/leave, policy-change, and eligibility-change races. Regenerate/compare database types. Do not reapply or edit previously applied migrations. No hosted migration, commit, or push is authorized in this task.
+Local SQL tests do not verify hosted PostgREST, Auth administration, browser flows, or independent-session lock races. Concurrent test submissions are queued on PGlite's single backend. Join/leave already passed hosted validation. Next, review this uncommitted settings slice; only with separate authorization apply `20260928000300_community_settings.sql` to development Supabase and regenerate/compare database types. Validate owner save → refreshed landing/list, nonowner form exclusion, direct REST/RPC denials, stale ownership/account eligibility, unchanged slug/memberships, and public + instant → private + instant admission denial. Exercise settings-versus-join and settings-versus-settings in independent sessions. Do not reapply or edit previously applied migrations. No hosted migration, commit, or push is authorized in this task.
 
 Before wider exposure, decide and implement creation abuse controls/rate limits and operational handling of abandoned ownership. Unlisted links are guessable and shareable; slug uniqueness necessarily reveals availability, including collisions with private slugs. No public discovery endpoint or member content is introduced in this slice. Schema-wide privileged SQL remains an administrative trust boundary.

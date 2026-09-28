@@ -5,7 +5,26 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { AuthenticationRequired, reportError } from "@/lib/auth/service";
 import type { ActionState } from "@/lib/auth/state";
-import { changeMembership, createCommunity, type CreateCommunityResult, type MembershipResult } from "@/lib/communities/service";
+import { changeMembership, createCommunity, updateCommunitySettings, type CreateCommunityResult, type MembershipResult } from "@/lib/communities/service";
+
+export async function updateCommunitySettingsAction(_: ActionState, form: FormData): Promise<ActionState> {
+  let result: CreateCommunityResult;
+  let unauthenticated = false;
+  try {
+    result = await updateCommunitySettings(await createClient(true), form);
+  } catch (error) {
+    if (error instanceof AuthenticationRequired) unauthenticated = true;
+    else reportError("update-community-settings-action", error);
+    result = { status: "error", message: "Settings could not be saved. Refresh the page before retrying." };
+  }
+  if (unauthenticated) redirect("/sign-in");
+  if (result.status === "success") {
+    revalidatePath("/communities");
+    revalidatePath(`/c/${result.slug}`);
+    return { status: "success", message: "Community settings saved." };
+  }
+  return result;
+}
 
 async function membershipAction(operation: "join" | "leave", form: FormData): Promise<ActionState> {
   let result: MembershipResult;

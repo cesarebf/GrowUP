@@ -1,6 +1,6 @@
 # GrowUP product
 
-Status: core Auth/private profiles and the [community foundation](COMMUNITY_FOUNDATION.md) are committed and hosted-validated; password-recovery completion awaits custom SMTP/domain infrastructure. Instant join and voluntary leave are implemented locally for review; other admission workflows remain deferred. “Confirmed” means required by the product vision, not necessarily part of the first release. Architecture and entity designs beyond these slices remain proposals unless explicitly identified as requirements.
+Status: core Auth/private profiles, the [community foundation](COMMUNITY_FOUNDATION.md), and instant join/voluntary leave are committed and hosted-validated; password-recovery completion awaits custom SMTP/domain infrastructure. Owner community settings are implemented locally for review; other admission workflows remain deferred. “Confirmed” means required by the product vision, not necessarily part of the first release. Architecture and entity designs beyond these slices remain proposals unless explicitly identified as requirements.
 
 ## Vision
 
@@ -20,6 +20,7 @@ GrowUP (“Group + Grow”) is an accessible, affordable, feature-rich community
 - Security, correct authorization, privacy, maintainability, and simplicity govern implementation. Use the selected stack in [ARCHITECTURE](ARCHITECTURE.md).
 - Creators explicitly select public, unlisted, or private visibility; no implicit visibility default. Public communities appear in GrowUP discovery, unlisted communities are accessed by link, and private communities are not publicly discoverable. Content stays member-gated by default.
 - Instant admission permits only public/unlisted + instant for currently eligible accounts. Private + instant stays valid configuration but cannot admit users. Voluntary leave deletes current membership for members/moderators/admins, independent of admission policy; owners cannot leave. Eligible rejoining follows current rules and always starts as `member`.
+- Only the current eligible owner may edit community name, short description, visibility, and join policy in the settings slice. Slug editing remains deferred. Changing visibility/admission policy does not remove existing members; private + instant remains storable but denies new instant joins.
 - Users may own multiple communities; each community has exactly one owner and can have multiple admins/moderators. Transfers require acceptance; the previous owner becomes admin unless explicitly removed.
 - The current Auth slice uses email/password, verified email, recovery, persistent secure sessions, logout, and private profiles. Google OAuth is deferred; platform administrators will eventually require MFA.
 

@@ -2,7 +2,7 @@ import { describe, it, mock } from "node:test";
 import assert from "node:assert/strict";
 import type { Client } from "../src/lib/auth/service.ts";
 import { AuthenticationRequired } from "../src/lib/auth/service.ts";
-import { changeMembership, createCommunity, listMyCommunities, readCommunity } from "../src/lib/communities/service.ts";
+import { changeMembership, createCommunity, listMyCommunities, readCommunity, updateCommunitySettings } from "../src/lib/communities/service.ts";
 import { isCommunitySlug, parseCommunityInput } from "../src/lib/communities/validation.ts";
 
 const user = { id: "trusted-user", email_confirmed_at: "2026-09-28T00:00:00Z" };
@@ -18,6 +18,73 @@ function client(candidate: unknown = user, rpc: unknown = async () => ({ data: "
 
 describe("community service boundary", () => {
   const communityId = "11111111-1111-4111-8111-111111111111";
+  const settingsFields = { community_id: communityId, name: fields.name, description: fields.description, visibility: fields.visibility, join_policy: fields.join_policy };
+  it("sends normalized settings and a locator, returning only the database-authorized slug", async () => {
+    const rpc = mock.fn(async () => ({ data: "trusted-slug", error: null }));
+    const result = await updateCommunitySettings(client(user, rpc), form(settingsFields));
+    assert.deepEqual(result, { status: "success", slug: "trusted-slug" });
+    assert.deepEqual(rpc.mock.calls[0].arguments, ["update_community_settings", {
+      p_community_id: communityId,
+      p_settings: { name: "Grow together", description: "A place to learn", visibility: "public", join_policy: "instant" },
+    }]);
+  });
+  it("rejects unknown settings fields including forged owner, slug, tenant, role and redirect", async () => {
+    const rpc = mock.fn();
+    for (const key of ["owner_user_id", "user_id", "slug", "id", "role", "next", "unexpected"]) {
+      assert.equal((await updateCommunitySettings(client(user, rpc), form({ ...settingsFields, [key]: "forged" }))).status, "error");
+    }
+    assert.equal(rpc.mock.callCount(), 0);
+  });
+  it("rejects duplicate, file, missing, malformed, and out-of-bound settings before RPC", async () => {
+    const rpc = mock.fn();
+    for (const key of Object.keys(settingsFields)) {
+      const duplicate = form(settingsFields);
+      duplicate.append(key, "duplicate");
+      assert.equal((await updateCommunitySettings(client(user, rpc), duplicate)).status, "error");
+      const file = form(settingsFields);
+      file.set(key, new Blob(["file"]), "settings.txt");
+      assert.equal((await updateCommunitySettings(client(user, rpc), file)).status, "error");
+      if (key !== "description") {
+        const missing = form(settingsFields);
+        missing.delete(key);
+        assert.equal((await updateCommunitySettings(client(user, rpc), missing)).status, "error");
+      }
+    }
+    for (const overrides of [
+      { community_id: "../invalid" }, { community_id: `${communityId}\n` },
+      { name: " " }, { name: "a".repeat(81) }, { name: "bad\nname" }, { name: "\tName" },
+      { description: "a".repeat(501) }, { description: "bad\u0000description" }, { description: "Text\n" },
+      { visibility: "PUBLIC" }, { visibility: "public " }, { visibility: "invalid" },
+      { join_policy: "INSTANT" }, { join_policy: "instant " }, { join_policy: "invalid" },
+    ]) assert.equal((await updateCommunitySettings(client(user, rpc), form({ ...settingsFields, ...overrides }))).status, "error");
+    assert.equal(rpc.mock.callCount(), 0);
+  });
+  it("normalizes omitted/blank descriptions and accepts Unicode bounds and private + instant", async () => {
+    const rpc = mock.fn(async () => ({ data: "trusted-slug", error: null }));
+    for (const description of [undefined, "   ", "🌱".repeat(500)]) {
+      const input = form({ ...settingsFields, name: "🌱".repeat(80), visibility: "private" });
+      if (description === undefined) input.delete("description");
+      else input.set("description", description);
+      input.set("$ACTION_REF_test", "React transport metadata");
+      assert.equal((await updateCommunitySettings(client(user, rpc), input)).status, "success");
+      const args = rpc.mock.calls.at(-1)!.arguments as unknown as [string, { p_settings: Record<string, string> }];
+      assert.equal(args[1].p_settings.description, description?.trim() ?? "");
+      assert.deepEqual(Object.keys(args[1].p_settings).sort(), ["description", "join_policy", "name", "visibility"]);
+    }
+  });
+  it("keeps settings provider errors private and rejects malformed success slugs", async () => {
+    const logger = mock.method(console, "error", () => {});
+    try {
+      for (const response of [
+        { data: null, error: { code: "42501", message: "private ownership payload" } },
+        { data: "//evil.example", error: null }, { data: null, error: null },
+      ]) {
+        const result = await updateCommunitySettings(client(user, async () => response), form(settingsFields));
+        assert.equal(result.status, "error");
+        assert.ok(!JSON.stringify([result, logger.mock.calls]).includes("private ownership payload"));
+      }
+    } finally { logger.mock.restore(); }
+  });
   for (const operation of ["join", "leave"] as const) {
     it(`${operation} sends only the community ID, ignoring forged user, role, and redirect`, async () => {
       const rpc = mock.fn(async () => ({ data: operation === "join" ? "trusted-slug" : null, error: null }));
@@ -61,6 +128,7 @@ describe("community service boundary", () => {
       const from = mock.fn();
       await assert.rejects(createCommunity(client(candidate, rpc, from), form(fields)), AuthenticationRequired);
       await assert.rejects(listMyCommunities(client(candidate, rpc, from)), AuthenticationRequired);
+      await assert.rejects(updateCommunitySettings(client(candidate, rpc, from), form(settingsFields)), AuthenticationRequired);
       await assert.rejects(changeMembership(client(candidate, rpc, from), "join", form({ community_id: communityId })), AuthenticationRequired);
       await assert.rejects(changeMembership(client(candidate, rpc, from), "leave", form({ community_id: communityId, confirm_leave: "yes" })), AuthenticationRequired);
       assert.equal(rpc.mock.callCount(), 0);

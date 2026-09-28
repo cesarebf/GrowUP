@@ -1,11 +1,25 @@
 import "server-only";
 
 import { AuthenticationRequired, getVerifiedUser, reportError, type Client } from "../auth/service.ts";
-import { isCommunitySlug, parseCommunityInput } from "./validation.ts";
+import { isCommunitySlug, parseCommunityInput, parseCommunitySettings } from "./validation.ts";
 
 export type CreateCommunityResult = { status: "error"; message: string } | { status: "success"; slug: string };
 
 export type MembershipResult = { status: "error"; message: string } | { status: "success"; path: string };
+
+export async function updateCommunitySettings(client: Client, form: FormData): Promise<CreateCommunityResult> {
+  if (!await getVerifiedUser(client)) throw new AuthenticationRequired();
+  const parsed = parseCommunitySettings(form);
+  if (parsed.error !== undefined) return { status: "error", message: parsed.error };
+  const { data, error } = await client.rpc("update_community_settings", {
+    p_community_id: parsed.communityId, p_settings: parsed.input,
+  });
+  if (error || typeof data !== "string" || !isCommunitySlug(data)) {
+    reportError("update-community-settings", error);
+    return { status: "error", message: "Settings could not be saved. Only the current owner can edit them. Refresh the page before retrying." };
+  }
+  return { status: "success", slug: data };
+}
 
 export async function changeMembership(client: Client, operation: "join" | "leave", form: FormData): Promise<MembershipResult> {
   if (!await getVerifiedUser(client)) throw new AuthenticationRequired();

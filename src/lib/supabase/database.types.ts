@@ -2,6 +2,8 @@
 // with the Supabase CLI after applying migrations; do not add speculative tables.
 import type { CommunityRole, JoinPolicy, Visibility } from "../communities/validation.ts";
 
+type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
 type CommunityRow = {
   id: string; owner_user_id: string; owner_role: "owner"; name: string; slug: string;
   description: string; visibility: Visibility; join_policy: JoinPolicy;
@@ -47,6 +49,7 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      update_community_settings: { Args: { p_community_id: string; p_settings: Json }; Returns: string };
       join_community: { Args: { p_community_id: string }; Returns: string };
       leave_community: { Args: { p_community_id: string }; Returns: undefined };
       create_community: {

@@ -5,6 +5,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { readCommunity } from "@/lib/communities/service";
 import { getVerifiedUser } from "@/lib/auth/service";
 import { CommunityMembershipForm } from "@/components/community-membership-form";
+import { CommunitySettingsForm } from "@/components/community-settings-form";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,10 @@ export default async function CommunityPage({ params }: { params: Promise<{ slug
       : canJoin ? eligible ? <CommunityMembershipForm communityId={community.id} operation="join" />
         : <p className="text-sm"><Link href="/sign-in" prefetch={false} className="underline">Sign in with a verified, eligible account</Link> to join.</p>
         : <p className="text-sm text-muted-foreground">Joining this community is not available for its current admission policy.</p>}
+    {community.viewer_role === "owner" && <CommunitySettingsForm community={{
+      id: community.id, name: community.name, description: community.description,
+      visibility: community.visibility, join_policy: community.join_policy,
+    }} />}
     <Link href="/communities" prefetch={false} className="text-sm underline">Your communities</Link>
   </main>;
 }

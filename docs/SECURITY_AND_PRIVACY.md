@@ -2,7 +2,7 @@
 
 Status: design principles and release gates. Implement and verify protections with each feature; the final hardening phase does not postpone basic security.
 
-Implemented community boundary: [Community foundation](COMMUNITY_FOUNDATION.md) documents member-only table reads, own-membership RLS, atomic identity-derived creation/join/leave, owner integrity/deletion guards, and the limited exact-slug landing projection. Join permits new members only for public/unlisted + instant and assigns `member`; leave deletes only the caller's nonowner membership. Both recheck current account eligibility. Private communities disclose no metadata to nonmembers. Direct membership writes remain denied; role management and other admission systems remain deferred.
+Implemented community boundary: [Community foundation](COMMUNITY_FOUNDATION.md) documents member-only table reads, own-membership RLS, atomic identity-derived creation/join/leave/settings, owner integrity/deletion guards, and the limited exact-slug landing projection. Join permits new members only for public/unlisted + instant and assigns `member`; leave deletes only the caller's nonowner membership. Settings rechecks current eligibility and ownership under locks and accepts only name, description, visibility, and join policy. Admins/moderators cannot edit settings in this slice. Settings never changes slugs, ownership, or memberships; private + instant still denies new admission. Private communities disclose no metadata to nonmembers. Direct community/membership writes remain denied; role management and other admission systems remain deferred.
 
 ## Tenant isolation and authorization
 

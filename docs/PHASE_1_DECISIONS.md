@@ -1,6 +1,6 @@
 # GrowUP Phase 1 authorization and product decisions
 
-Status: **approved planning checkpoint, with the product owner's amendments**. Core Auth/private profiles and the [community foundation](COMMUNITY_FOUNDATION.md) are committed and hosted-validated. Recovery completion awaits custom SMTP/domain infrastructure. Instant join and voluntary leave are now authorized; other admission and role-management workflows remain deferred.
+Status: **approved planning checkpoint, with the product owner's amendments**. Core Auth/private profiles, the [community foundation](COMMUNITY_FOUNDATION.md), and instant join/voluntary leave are committed and hosted-validated. Recovery completion awaits custom SMTP/domain infrastructure. Owner community settings are implemented locally for review; other admission and role-management workflows remain deferred.
 
 ## Visibility and joining
 
@@ -26,6 +26,8 @@ All new admissions atomically recheck current account eligibility and community 
 ## Role permissions
 
 Plan one effective community role per active membership, with exactly one owner per community and multiple admins/moderators allowed. Platform admin is a separate platform assignment, never inherited from a community role. Feature permissions below apply only when that feature is later implemented.
+
+Current settings exception to the future role matrix: only the eligible current owner may edit name, short description, visibility, and join policy. Admins and moderators have no settings permission in this slice. Slug editing is deferred. Policy changes preserve existing memberships; private + instant is valid stored configuration but cannot admit new members.
 
 | Role | Allowed within its scope | Important limits |
 | --- | --- | --- |
@@ -82,4 +84,4 @@ Resolve these before the affected future implementation; they do not block the i
 4. Exact globally public versus broader community-visible profile fields. Sensitive account data stays private; public exposure is conservative and future location is separate and opt-in.
 5. When to add Google sign-in and its provider/account-linking configuration.
 
-The current authorized slice adds only instant join and voluntary leave to the hosted-validated foundation, with a new migration, minimal UI, and regression/security tests. Keep the established Auth architecture and private profile boundary. Do not add invitations, approvals, bans/restrictions systems, role management, ownership transfer, deletion, discovery, Google OAuth, payments, tiers, forum, chat, DMs, location, or courses. Leave this implementation uncommitted; do not push or apply its migration to hosted Supabase during this task.
+The current authorized slice adds only owner community settings to the hosted-validated join/leave checkpoint, with a new migration, minimal UI, and regression/security tests. Keep the established Auth architecture and private profile boundary. Do not add invitations, approvals, bans/restrictions systems, role management, ownership transfer, deletion, discovery, Google OAuth, payments, tiers, forum, chat, DMs, location, or courses. Leave this implementation uncommitted; do not push or apply its migration to hosted Supabase during this task.

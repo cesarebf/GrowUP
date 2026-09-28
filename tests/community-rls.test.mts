@@ -33,7 +33,7 @@ describe("community database security and invariants", { concurrency: false }, (
       alter default privileges in schema public grant all on tables to anon, authenticated;
       alter default privileges in schema public grant execute on functions to anon, authenticated;
     `);
-    for (const migration of ["20260924000100_private_profiles.sql", "20260928000100_community_foundation.sql", "20260928000200_community_join_leave.sql"]) {
+    for (const migration of ["20260924000100_private_profiles.sql", "20260928000100_community_foundation.sql", "20260928000200_community_join_leave.sql", "20260928000300_community_settings.sql"]) {
       await db.exec(await readFile(new URL(`../supabase/migrations/${migration}`, import.meta.url), "utf8"));
     }
     await db.query("insert into auth.users(id, email_confirmed_at) values ($1, now()), ($2, now()), ($3, null)", [alice, bob, unverified]);
@@ -81,6 +81,172 @@ describe("community database security and invariants", { concurrency: false }, (
   async function leave(id: string) {
     return db.query("select public.leave_community($1)", [id]);
   }
+
+  const settings = { name: " Updated name ", description: " Updated description ", visibility: "public", join_policy: "instant" };
+  const updateSql = "select public.update_community_settings($1, $2::jsonb) as slug";
+  async function updateSettings(id: string, input: unknown = settings) {
+    return db.query(updateSql, [id, JSON.stringify(input)]);
+  }
+
+  it("lets the owner update only settings, preserving slug, ownership, other tenants and every membership", async () => {
+    await addMember(publicId, "admin");
+    const before = (await db.query<Record<string, unknown>>("select * from public.communities order by id")).rows;
+    const memberships = (await db.query("select * from public.community_memberships order by community_id, user_id")).rows;
+    await asUser(alice);
+    assert.deepEqual((await updateSettings(publicId)).rows, [{ slug: "alice-public" }]);
+    // Repetition has no membership side effects.
+    await updateSettings(publicId);
+    await db.exec("reset role");
+    const after = (await db.query("select * from public.communities order by id")).rows;
+    assert.deepEqual(after, before.map((row) => row.id === publicId ? {
+      ...row, name: "Updated name", description: "Updated description", visibility: "public", join_policy: "instant",
+    } : row)); // now() is constant within this test transaction.
+    assert.deepEqual((await db.query("select * from public.community_memberships order by community_id, user_id")).rows, memberships);
+    await db.exec("set constraints all immediate");
+  });
+
+  for (const role of ["member", "moderator", "admin"]) {
+    it(`denies settings updates by ${role}, even when they own another community`, async () => {
+      await addMember(publicId, role);
+      await asUser(bob);
+      await denied(updateSql, [publicId, JSON.stringify(settings)]);
+      assert.equal((await landing("alice-public"))[0].name, "Community");
+    });
+  }
+  it("denies another owner across public/private tenants and does not disclose missing targets", async () => {
+    await asUser(bob);
+    const messages: string[] = [];
+    for (const id of [publicId, privateId, null, "99999999-9999-4999-8999-999999999999"]) {
+      await db.exec("savepoint settings_probe");
+      await assert.rejects(updateSettings(id as string), (error: Error & { code?: string }) => {
+        assert.equal(error.code, "42501");
+        messages.push(error.message);
+        return true;
+      });
+      await db.exec("rollback to savepoint settings_probe; release savepoint settings_probe");
+    }
+    assert.equal(new Set(messages).size, 1);
+    await updateSettings(bobId); // Owning one tenant never grants another.
+  });
+  for (const [label, id, role] of [["anonymous", null, "anon"], ["missing identity", null, "authenticated"], ["unverified", unverified, "authenticated"]] as const) {
+    it(`denies ${label} settings updates`, async () => {
+      await asUser(id, role);
+      await denied(updateSql, [publicId, JSON.stringify(settings)]);
+    });
+  }
+  for (const state of ["banned_until = now() + interval '1 day'", "email_confirmed_at = null", "is_anonymous = true", "deleted_at = now()"]) {
+    it(`rechecks settings owner's account eligibility: ${state}`, async () => {
+      // Owner deletion is otherwise blocked; emulate a preexisting invalid
+      // account to verify the RPC's defense independently of that trigger.
+      if (state.startsWith("deleted_at")) await db.exec("alter table auth.users disable trigger auth_user_community_owner_soft_delete");
+      await db.query(`update auth.users set ${state} where id = $1`, [alice]);
+      await asUser(alice);
+      await denied(updateSql, [publicId, JSON.stringify(settings)]);
+    });
+  }
+  it("rechecks current ownership after a previously authorized owner loses ownership", async () => {
+    await addMember(publicId);
+    await asUser(alice);
+    await updateSettings(publicId);
+    // Privileged fixture transfer only; no transfer endpoint is introduced.
+    await db.exec("reset role");
+    await db.query("update public.community_memberships set role = 'admin' where community_id = $1 and user_id = $2", [publicId, alice]);
+    await db.query("update public.community_memberships set role = 'owner' where community_id = $1 and user_id = $2", [publicId, bob]);
+    await db.query("update public.communities set owner_user_id = $1 where id = $2", [bob, publicId]);
+    await db.exec("set constraints all immediate");
+    await asUser(alice);
+    await denied(updateSql, [publicId, JSON.stringify(settings)]);
+    await asUser(bob);
+    await updateSettings(publicId);
+  });
+
+  it("rejects forged identity, ownership, slug, tenant, role and unknown settings fields atomically", async () => {
+    await asUser(alice);
+    for (const key of ["owner_user_id", "user_id", "slug", "id", "community_id", "role", "owner_role", "unexpected"]) {
+      await denied(updateSql, [publicId, JSON.stringify({ ...settings, [key]: bob })], "22023");
+    }
+    await denied("select public.update_community_settings(p_community_id => $1::uuid, p_settings => $2::jsonb, owner_user_id => $3::uuid)", [publicId, JSON.stringify(settings), bob], "42883");
+    const current = (await landing("alice-public"))[0];
+    assert.equal(current.name, "Community");
+    assert.equal(current.slug, "alice-public");
+    assert.equal(current.viewer_role, "owner");
+    await asUser(bob);
+    await denied(updateSql, [publicId, JSON.stringify({ ...settings, owner_user_id: alice })]);
+  });
+  it("rejects nonobject, missing and wrongly typed settings instead of coercing them", async () => {
+    await asUser(alice);
+    for (const input of [null, [], "name", 42, true, {}, ...["name", "description", "visibility", "join_policy"].flatMap((key) =>
+      [null, 42, true, [], {}].map((value) => ({ ...settings, [key]: value })))]) {
+      await denied(updateSql, [publicId, JSON.stringify(input)], "22023");
+    }
+    await denied(updateSql, [publicId, null], "22023");
+    for (const key of ["name", "visibility", "join_policy"]) {
+      const input: Record<string, string> = { ...settings };
+      delete input[key];
+      await denied(updateSql, [publicId, JSON.stringify(input)], "22023");
+    }
+    assert.equal((await landing("alice-public"))[0].name, "Community");
+  });
+  for (const [key, values] of [
+    ["name", ["", "   ", "x".repeat(81), "bad\nname", "\tName", "Name\u007f"]],
+    ["description", ["x".repeat(501), "bad\tdescription", "description\n"]],
+    ["visibility", ["", "secret", "PUBLIC", "public "]],
+    ["join_policy", ["", "paid", "INSTANT", "instant "]],
+  ] as const) {
+    it(`rejects malformed ${key} and leaves every setting unchanged`, async () => {
+      await asUser(alice);
+      const before = await landing("alice-public");
+      for (const value of values) {
+        await denied(updateSql, [publicId, JSON.stringify({ ...settings, [key]: value })], "23514");
+        assert.deepEqual(await landing("alice-public"), before);
+      }
+    });
+  }
+  it("accepts boundary Unicode text and clears an omitted or empty optional description", async () => {
+    await asUser(alice);
+    await updateSettings(publicId, { ...settings, name: "🌱".repeat(80), description: "🌱".repeat(500) });
+    assert.equal((await landing("alice-public"))[0].description, "🌱".repeat(500));
+    await updateSettings(publicId, { name: "Name", visibility: "public", join_policy: "instant" });
+    assert.equal((await landing("alice-public"))[0].description, "");
+    await updateSettings(publicId, { ...settings, description: "   " });
+    assert.equal((await landing("alice-public"))[0].description, "");
+  });
+
+  for (const visibility of ["public", "unlisted", "private"]) {
+    for (const join_policy of ["instant", "approval_required", "invitation_only"]) {
+      it(`settings can store ${visibility} + ${join_policy} without removing members or admitting ineligible new joins`, async () => {
+        await addMember(publicId, "moderator");
+        const before = (await db.query("select * from public.community_memberships order by community_id, user_id")).rows;
+        await asUser(alice);
+        await updateSettings(publicId); // Start at public + instant.
+        await updateSettings(publicId, { ...settings, visibility, join_policy });
+        assert.equal((await landing("alice-public"))[0].visibility, visibility);
+        await asUser(bob);
+        assert.equal((await landing("alice-public"))[0].viewer_role, "moderator");
+        await join(publicId); // Existing members retain their roles.
+        await db.exec("reset role");
+        assert.deepEqual((await db.query("select * from public.community_memberships order by community_id, user_id")).rows, before);
+        await db.query("update auth.users set email_confirmed_at = now() where id = $1", [unverified]);
+        await asUser(unverified);
+        if (visibility === "private") assert.deepEqual(await landing("alice-public"), []);
+        if (visibility !== "private" && join_policy === "instant") await join(publicId);
+        else await denied("select public.join_community($1)", [publicId]);
+      });
+    }
+  }
+  it("restricts settings EXECUTE and definer scope while retaining table write denial", async () => {
+    const rows = (await db.query<{ proconfig: string[]; prosecdef: boolean; args: string }>(`select proconfig, prosecdef, pg_get_function_arguments(oid) as args
+      from pg_proc where pronamespace = 'public'::regnamespace and proname = 'update_community_settings'`)).rows;
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].prosecdef, true);
+    assert.ok(rows[0].proconfig.includes('search_path=""'));
+    assert.equal(rows[0].args, "p_community_id uuid, p_settings jsonb");
+    assert.deepEqual((await db.query("select has_function_privilege('anon', 'public.update_community_settings(uuid,jsonb)', 'EXECUTE') as anon, has_function_privilege('authenticated', 'public.update_community_settings(uuid,jsonb)', 'EXECUTE') as authenticated")).rows, [{ anon: false, authenticated: true }]);
+    await asUser(alice);
+    await denied("update public.communities set name = 'Direct update' where id = $1", [publicId]);
+    await denied("update public.communities set slug = 'changed-slug' where id = $1", [publicId]);
+    await denied("update public.communities set owner_user_id = $1 where id = $2", [bob, publicId]);
+  });
 
   for (const visibility of ["public", "unlisted", "private"]) {
     for (const policy of ["instant", "approval_required", "invitation_only"]) {
