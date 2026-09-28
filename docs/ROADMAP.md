@@ -1,12 +1,12 @@
 # GrowUP roadmap
 
-Status: proposed sequence, not a promise of release dates or authorization to implement. Core Auth/private profiles are committed and live-validated; password-recovery completion awaits custom SMTP/domain infrastructure. The community foundation is implemented locally and awaits review and hosted validation. Confirm scope and unresolved decisions before each further phase.
+Status: proposed sequence, not a promise of release dates or authorization to implement. Core Auth/private profiles and the community foundation are committed and hosted-validated; password-recovery completion awaits custom SMTP/domain infrastructure. Instant join/voluntary leave are implemented locally and await review and hosted validation. Confirm scope and unresolved decisions before each further phase.
 
 Security, accessibility, authorization, and relevant tests belong to every phase. Basic moderation and operational controls must exist before exposing the associated features to real users.
 
 | Phase | Intended scope and exit condition |
 | --- | --- |
-| 1 — Foundation / Auth / Communities | Core Auth/private profiles are live-validated; recovery completion is deferred. Community creation/viewing, ownership, memberships/roles, and explicit visibility/join-policy configuration are implemented locally with migration/RLS tests. Review and hosted community validation remain. Admission, role management, transfers, and Google require later approved slices. |
+| 1 — Foundation / Auth / Communities | Core Auth/private profiles and community creation/viewing/ownership are hosted-validated; recovery completion is deferred. Instant join/voluntary leave are implemented locally with migration/RLS tests and await review/hosted validation. Approval requests, invitations, role management, transfers, and Google require later approved slices. |
 | 2 — Forum / Community experience | Posts, comments, member directory, community settings, and configurable landing behavior for available features. Basic discovery cards/categories/search and an agreed initial recommendation rule. Exit with coherent permissions, safe content/media handling, and basic reporting/moderation. |
 | 3 — Courses | Modules, lessons, content/media, completion/progress, and explicit resource entitlements. Establish the minimum tier/access representation needed for courses without Stripe or checkout; resolve assignment rules first. Exit with tested access restrictions and an approved video-delivery approach. |
 | 4 — Chat / DMs / Realtime | Community channels, durable messages, private DMs, and authorized realtime/presence. Global discussion only after its audience is agreed. Exit with blocking/reporting, rate limits, participant isolation, and verified permission revocation. |
@@ -19,4 +19,4 @@ Security, accessibility, authorization, and relevant tests belong to every phase
 
 ## Recommended exact next task
 
-Review the uncommitted community foundation, apply its migration to a separate development Supabase project, regenerate/compare database types, and live-validate creation, redirects, membership listing, visibility, direct RPC/REST denial, two-user isolation, and owner deletion guards as described in [Community foundation](COMMUNITY_FOUNDATION.md). Commit/push only when explicitly requested. Do not add admission or other product features during validation.
+Review the uncommitted instant-join/voluntary-leave slice. With separate explicit authorization, apply only `20260928000200_community_join_leave.sql` to development Supabase, regenerate/compare database types, and validate browser join/confirmed leave, redirects/list refresh, private/owner denials, two-user isolation, direct RPC/REST permissions, and independent-session concurrency as described in [Community foundation](COMMUNITY_FOUNDATION.md). Commit/push only when explicitly requested. Add no new product features during validation.

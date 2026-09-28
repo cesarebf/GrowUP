@@ -1,6 +1,6 @@
 # GrowUP product
 
-Status: core email/password Auth, sessions, private profiles, and RLS are committed and live-validated; password-recovery completion awaits custom SMTP/domain infrastructure. The [community foundation](COMMUNITY_FOUNDATION.md) is implemented locally, with creation/viewing, one owner, memberships/roles, and explicit visibility/join-policy configuration; admission workflows remain deferred. “Confirmed” means required by the product vision, not necessarily part of the first release. Architecture and entity designs beyond these slices remain proposals unless explicitly identified as requirements.
+Status: core Auth/private profiles and the [community foundation](COMMUNITY_FOUNDATION.md) are committed and hosted-validated; password-recovery completion awaits custom SMTP/domain infrastructure. Instant join and voluntary leave are implemented locally for review; other admission workflows remain deferred. “Confirmed” means required by the product vision, not necessarily part of the first release. Architecture and entity designs beyond these slices remain proposals unless explicitly identified as requirements.
 
 ## Vision
 
@@ -19,6 +19,7 @@ GrowUP (“Group + Grow”) is an accessible, affordable, feature-rich community
 - Member location sharing is voluntary, removable, and approximate by default, to support local meetups. Precise/private locations must not leak through public surfaces.
 - Security, correct authorization, privacy, maintainability, and simplicity govern implementation. Use the selected stack in [ARCHITECTURE](ARCHITECTURE.md).
 - Creators explicitly select public, unlisted, or private visibility; no implicit visibility default. Public communities appear in GrowUP discovery, unlisted communities are accessed by link, and private communities are not publicly discoverable. Content stays member-gated by default.
+- Instant admission permits only public/unlisted + instant for currently eligible accounts. Private + instant stays valid configuration but cannot admit users. Voluntary leave deletes current membership for members/moderators/admins, independent of admission policy; owners cannot leave. Eligible rejoining follows current rules and always starts as `member`.
 - Users may own multiple communities; each community has exactly one owner and can have multiple admins/moderators. Transfers require acceptance; the previous owner becomes admin unless explicitly removed.
 - The current Auth slice uses email/password, verified email, recovery, persistent secure sessions, logout, and private profiles. Google OAuth is deferred; platform administrators will eventually require MFA.
 
@@ -31,7 +32,7 @@ Achievements, points, levels, leaderboards, referrals, creator/platform analytic
 The [approved Phase 1 decision matrix](PHASE_1_DECISIONS.md) records the accepted policies and remaining details. Sensitive account data is private; future community-facing profiles may expose more than globally public profiles, and location consent remains separate.
 
 - Initial audience, launch countries/languages/currencies, measurable affordability goals, and the exact first-release scope.
-- Exact visibility/admission combinations, invitation expiry/reapplication rules, public previews, and discoverable directory/profile fields.
+- Approval/invitation visibility combinations, invitation expiry/reapplication rules, public preview extensions, and discoverable directory/profile fields.
 - Operational moderation/support procedures, unavailable-owner recovery, community closure, and community-staff MFA.
 - Creator billing per community versus per creator/account; plan limits, prices, rates, trials, and changes between arrangements.
 - Whether members can hold multiple tiers, whether higher tiers inherit benefits, and upgrade/downgrade, cancellation, refund, and delinquency rules.

@@ -1,6 +1,6 @@
 # GrowUP
 
-Group + Grow. Next.js application with Supabase email/password Auth, private account profiles, and a minimal community foundation. Admission workflows and commercial features remain deferred.
+Group + Grow. Next.js application with Supabase email/password Auth, private account profiles, and a minimal community foundation with instant join and voluntary leave. Other admission workflows and commercial features remain deferred.
 
 ## Local development
 
@@ -47,4 +47,4 @@ The Supabase packages provide managed Auth and SSR cookie handling; `server-only
 
 Core email/password Auth, sessions, private profiles, and RLS are committed and live-validated. Password-recovery completion is deferred until custom SMTP/domain infrastructure is available; the existing recovery implementation remains in place. See [Auth setup](docs/AUTH_SETUP.md).
 
-The locally implemented [community foundation](docs/COMMUNITY_FOUNDATION.md) adds `/communities/new`, `/communities`, and `/c/{slug}`, backed by a second migration. It requires explicit visibility and join-policy choices and atomically creates one owner membership. Apply reviewed migrations in order to a development project before exercising these pages. Private communities expose no metadata to nonmembers. No joining, approval, invitation, role-management, or transfer workflow exists yet. Google OAuth, public/community/location profiles, Stripe, courses, forum, chat, DMs, and creator plans remain deferred.
+The hosted-validated [community foundation](docs/COMMUNITY_FOUNDATION.md) provides `/communities/new`, `/communities`, and `/c/{slug}`. A third, local migration adds instant join for eligible public/unlisted + instant communities and confirmed voluntary leave for nonowners. Membership rows represent current participation; leave deletes the row and rejoin starts as `member`. Private communities expose no metadata to nonmembers. Review and separately authorize hosted application of the new migration before deployment. Approval, invitation, bans/restrictions, role-management, transfer, deletion, discovery, Google OAuth, public/community/location profiles, Stripe, tiers, courses, forum, chat, DMs, and creator plans remain deferred.

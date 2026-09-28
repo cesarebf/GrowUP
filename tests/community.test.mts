@@ -2,7 +2,7 @@ import { describe, it, mock } from "node:test";
 import assert from "node:assert/strict";
 import type { Client } from "../src/lib/auth/service.ts";
 import { AuthenticationRequired } from "../src/lib/auth/service.ts";
-import { createCommunity, listMyCommunities, readCommunity } from "../src/lib/communities/service.ts";
+import { changeMembership, createCommunity, listMyCommunities, readCommunity } from "../src/lib/communities/service.ts";
 import { isCommunitySlug, parseCommunityInput } from "../src/lib/communities/validation.ts";
 
 const user = { id: "trusted-user", email_confirmed_at: "2026-09-28T00:00:00Z" };
@@ -17,6 +17,37 @@ function client(candidate: unknown = user, rpc: unknown = async () => ({ data: "
 }
 
 describe("community service boundary", () => {
+  const communityId = "11111111-1111-4111-8111-111111111111";
+  for (const operation of ["join", "leave"] as const) {
+    it(`${operation} sends only the community ID, ignoring forged user, role, and redirect`, async () => {
+      const rpc = mock.fn(async () => ({ data: operation === "join" ? "trusted-slug" : null, error: null }));
+      const result = await changeMembership(client(user, rpc), operation, form({ community_id: communityId, confirm_leave: "yes", user_id: "victim", role: "owner", slug: "forged-slug", next: "//evil.example" }));
+      assert.deepEqual(result, { status: "success", path: operation === "join" ? "/c/trusted-slug" : "/communities" });
+      assert.deepEqual(rpc.mock.calls[0].arguments, [`${operation}_community`, { p_community_id: communityId }]);
+    });
+    it(`${operation} rejects malformed IDs before RPC`, async () => {
+      const rpc = mock.fn();
+      for (const id of ["", "../path", "invalid", `${communityId}\n`]) {
+        assert.equal((await changeMembership(client(user, rpc), operation, form({ community_id: id, confirm_leave: "yes" }))).status, "error");
+      }
+      assert.equal(rpc.mock.callCount(), 0);
+    });
+    it(`${operation} redacts RPC failures and gives a safe retry message`, async () => {
+      const logger = mock.method(console, "error", () => {});
+      try {
+        const result = await changeMembership(client(user, async () => ({ data: null, error: { code: "42501", message: "private community payload" } })), operation, form({ community_id: communityId, confirm_leave: "yes" }));
+        assert.equal(result.status, "error");
+        assert.ok(!JSON.stringify([result, logger.mock.calls]).includes("private community payload"));
+      } finally { logger.mock.restore(); }
+    });
+  }
+  it("requires explicit leave confirmation at the server boundary", async () => {
+    const rpc = mock.fn();
+    for (const confirmation of ["", "no", "true"]) {
+      assert.equal((await changeMembership(client(user, rpc), "leave", form({ community_id: communityId, confirm_leave: confirmation }))).status, "error");
+    }
+    assert.equal(rpc.mock.callCount(), 0);
+  });
   it("validates and normalizes metadata, ignoring forged ownership and roles", async () => {
     const rpc = mock.fn(async () => ({ data: "uuid", error: null }));
     const result = await createCommunity(client(user, rpc), form({ ...fields, owner_user_id: "victim", user_id: "victim", role: "owner", id: "forged", next: "//evil.example" }));
@@ -30,6 +61,8 @@ describe("community service boundary", () => {
       const from = mock.fn();
       await assert.rejects(createCommunity(client(candidate, rpc, from), form(fields)), AuthenticationRequired);
       await assert.rejects(listMyCommunities(client(candidate, rpc, from)), AuthenticationRequired);
+      await assert.rejects(changeMembership(client(candidate, rpc, from), "join", form({ community_id: communityId })), AuthenticationRequired);
+      await assert.rejects(changeMembership(client(candidate, rpc, from), "leave", form({ community_id: communityId, confirm_leave: "yes" })), AuthenticationRequired);
       assert.equal(rpc.mock.callCount(), 0);
       assert.equal(from.mock.callCount(), 0);
     });

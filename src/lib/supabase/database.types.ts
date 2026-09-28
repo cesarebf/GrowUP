@@ -47,6 +47,8 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      join_community: { Args: { p_community_id: string }; Returns: string };
+      leave_community: { Args: { p_community_id: string }; Returns: undefined };
       create_community: {
         Args: { p_name: string; p_slug: string; p_description: string; p_visibility: Visibility; p_join_policy: JoinPolicy };
         Returns: string;

@@ -33,7 +33,7 @@ describe("community database security and invariants", { concurrency: false }, (
       alter default privileges in schema public grant all on tables to anon, authenticated;
       alter default privileges in schema public grant execute on functions to anon, authenticated;
     `);
-    for (const migration of ["20260924000100_private_profiles.sql", "20260928000100_community_foundation.sql"]) {
+    for (const migration of ["20260924000100_private_profiles.sql", "20260928000100_community_foundation.sql", "20260928000200_community_join_leave.sql"]) {
       await db.exec(await readFile(new URL(`../supabase/migrations/${migration}`, import.meta.url), "utf8"));
     }
     await db.query("insert into auth.users(id, email_confirmed_at) values ($1, now()), ($2, now()), ($3, null)", [alice, bob, unverified]);
@@ -74,6 +74,169 @@ describe("community database security and invariants", { concurrency: false }, (
     await db.exec("reset role");
     await db.query("insert into public.community_memberships(community_id, user_id, role) values ($1, $2, $3)", [communityId, bob, role]);
   }
+
+  async function join(id: string) {
+    return db.query("select public.join_community($1) as slug", [id]);
+  }
+  async function leave(id: string) {
+    return db.query("select public.leave_community($1)", [id]);
+  }
+
+  for (const visibility of ["public", "unlisted", "private"]) {
+    for (const policy of ["instant", "approval_required", "invitation_only"]) {
+      it(`enforces admission for ${visibility} + ${policy}`, async () => {
+        await asUser(alice);
+        const id = await create("admission-target", visibility, policy);
+        await asUser(bob);
+        if (visibility !== "private" && policy === "instant") {
+          assert.deepEqual((await join(id)).rows, [{ slug: "admission-target" }]);
+          assert.deepEqual((await db.query("select user_id, role from public.community_memberships where community_id = $1", [id])).rows, [{ user_id: bob, role: "member" }]);
+          assert.equal((await landing("admission-target"))[0].viewer_role, "member");
+        } else {
+          await denied("select public.join_community($1)", [id]);
+          assert.deepEqual((await db.query("select * from public.community_memberships where community_id = $1", [id])).rows, []);
+        }
+        await db.exec("reset role");
+        assert.deepEqual((await db.query("select visibility, join_policy from public.communities where id = $1", [id])).rows, [{ visibility, join_policy: policy }]);
+      });
+    }
+  }
+
+  for (const [label, id, role] of [["anonymous", null, "anon"], ["missing identity", null, "authenticated"], ["unverified", unverified, "authenticated"]] as const) {
+    it(`denies ${label} join and leave`, async () => {
+      await asUser(id, role);
+      for (const fn of ["join_community", "leave_community"]) await denied(`select public.${fn}($1)`, [publicId]);
+    });
+  }
+  for (const state of ["banned_until = now() + interval '1 day'", "email_confirmed_at = null", "is_anonymous = true", "deleted_at = now()"]) {
+    it(`rechecks current eligibility on join, existing-member retry, and leave: ${state}`, async () => {
+      await asUser(alice);
+      const id = await create("eligibility-target", "public", "instant");
+      // The unverified fixture owns no community, so soft deletion is legal.
+      await db.exec("reset role");
+      await db.query("update auth.users set email_confirmed_at = now() where id = $1", [unverified]);
+      await db.query("insert into public.community_memberships(community_id, user_id, role) values ($1, $2, 'member')", [privateId, unverified]);
+      await db.query(`update auth.users set ${state} where id = $1`, [unverified]);
+      await asUser(unverified);
+      await denied("select public.join_community($1)", [id]);
+      await denied("select public.join_community($1)", [privateId]);
+      await denied("select public.leave_community($1)", [privateId]);
+    });
+  }
+  it("rechecks admission changes between page read and join", async () => {
+    await asUser(alice);
+    const id = await create("changed-admission", "public", "instant");
+    await asUser(bob);
+    assert.equal((await landing("changed-admission"))[0].join_policy, "instant");
+    await db.exec("reset role");
+    await db.query("update public.communities set join_policy = 'approval_required' where id = $1", [id]);
+    await asUser(bob);
+    await denied("select public.join_community($1)", [id]);
+    await db.exec("reset role");
+    await db.query("update public.communities set join_policy = 'instant', visibility = 'private' where id = $1", [id]);
+    await asUser(bob);
+    await denied("select public.join_community($1)", [id]);
+  });
+  it("keeps one membership under concurrent submissions and repeated join/leave calls", async () => {
+    await asUser(alice);
+    const id = await create("retry-target", "public", "instant");
+    await asUser(bob);
+    // PGlite queues these concurrent submissions on one backend. This verifies
+    // retry/uniqueness behavior, not independent PostgreSQL session lock races.
+    await Promise.all(Array.from({ length: 8 }, () => join(id)));
+    assert.deepEqual((await db.query("select role from public.community_memberships where community_id = $1", [id])).rows, [{ role: "member" }]);
+    await Promise.all([leave(id), leave(id)]);
+    assert.equal((await db.query("select * from public.community_memberships where community_id = $1", [id])).rows.length, 0);
+    await Promise.all([join(id), leave(id)]);
+    assert.equal((await db.query("select * from public.community_memberships where community_id = $1", [id])).rows.length, 0);
+    await Promise.all([leave(id), join(id)]);
+    assert.equal((await db.query("select * from public.community_memberships where community_id = $1", [id])).rows.length, 1);
+  });
+  for (const role of ["member", "moderator", "admin"]) {
+    it(`preserves current ${role} on join, deletes on leave, and rejoins only as member`, async () => {
+      await asUser(alice);
+      const id = await create("rejoin-target", "public", "instant");
+      await addMember(id, role);
+      await asUser(bob);
+      await join(id);
+      assert.deepEqual((await db.query("select role from public.community_memberships where community_id = $1", [id])).rows, [{ role }]);
+      await leave(id);
+      assert.equal((await landing("rejoin-target"))[0].viewer_role, null);
+      assert.equal((await db.query("select * from public.communities where id = $1", [id])).rows.length, 0);
+      await join(id);
+      assert.equal((await landing("rejoin-target"))[0].viewer_role, "member");
+    });
+    it(`allows ${role} to leave a private invitation-only community and revokes access`, async () => {
+      await addMember(privateId, role);
+      await asUser(bob);
+      assert.equal((await landing("alice-private"))[0].viewer_role, role);
+      // Already-current join is a no-op even when admission is closed.
+      await join(privateId);
+      assert.equal((await landing("alice-private"))[0].viewer_role, role);
+      await leave(privateId);
+      await leave(privateId);
+      assert.deepEqual(await landing("alice-private"), []);
+      assert.deepEqual((await db.query("select * from public.communities where id = $1", [privateId])).rows, []);
+      assert.deepEqual((await db.query("select * from public.community_memberships where community_id = $1", [privateId])).rows, []);
+      await denied("select public.join_community($1)", [privateId]);
+      assert.equal((await landing("bob-private"))[0].viewer_role, "owner");
+    });
+  }
+  it("allows leave after admission changes to approval-required", async () => {
+    await addMember(publicId);
+    await db.query("update public.communities set join_policy = 'approval_required' where id = $1", [publicId]);
+    await asUser(bob);
+    await leave(publicId);
+    assert.equal((await landing("alice-public"))[0].viewer_role, null);
+  });
+  it("preserves the owner on join and denies owner leave without orphaning", async () => {
+    await asUser(alice);
+    await join(privateId);
+    await denied("select public.leave_community($1)", [privateId]);
+    assert.equal((await landing("alice-private"))[0].viewer_role, "owner");
+    await db.exec("set constraints all immediate");
+  });
+  it("does not distinguish private/nonexistent join failures or absent leave results", async () => {
+    await asUser(bob);
+    const messages: string[] = [];
+    for (const id of [privateId, "99999999-9999-4999-8999-999999999999", null]) {
+      await db.exec("savepoint private_probe");
+      await assert.rejects(db.query("select public.join_community($1)", [id]), (error: Error & { code?: string }) => {
+        assert.equal(error.code, "42501");
+        messages.push(error.message);
+        return true;
+      });
+      await db.exec("rollback to savepoint private_probe; release savepoint private_probe");
+      assert.deepEqual((await db.query("select public.leave_community($1) as result", [id])).rows, [{ result: "" }]);
+    }
+    assert.equal(new Set(messages).size, 1);
+  });
+  it("accepts only a community locator, denying forged users/roles and cross-community effects", async () => {
+    await addMember(privateId, "admin");
+    await asUser(bob);
+    for (const fn of ["join_community", "leave_community"]) {
+      await denied(`select public.${fn}($1::uuid, $2::uuid)`, [privateId, alice], "42883");
+      await denied(`select public.${fn}(p_community_id => $1::uuid, p_user_id => $2::uuid)`, [privateId, alice], "42883");
+      await denied(`select public.${fn}(p_community_id => $1::uuid, p_role => 'owner'::text)`, [privateId], "42883");
+    }
+    await leave(publicId); // No membership here: cannot affect privateId or Alice.
+    assert.equal((await landing("alice-private"))[0].viewer_role, "admin");
+    await leave(privateId);
+    assert.equal((await landing("bob-private"))[0].viewer_role, "owner");
+    await db.exec("reset role");
+    assert.deepEqual((await db.query("select role from public.community_memberships where user_id = $1 and community_id = $2", [alice, privateId])).rows, [{ role: "owner" }]);
+  });
+  it("restricts join/leave execution and locks definer scope without extra arguments", async () => {
+    const rows = (await db.query<{ proname: string; proconfig: string[]; prosecdef: boolean; args: string }>(`select proname, proconfig, prosecdef, pg_get_function_arguments(oid) as args
+      from pg_proc where pronamespace = 'public'::regnamespace and proname in ('join_community', 'leave_community')`)).rows;
+    assert.equal(rows.length, 2);
+    for (const row of rows) {
+      assert.equal(row.prosecdef, true);
+      assert.ok(row.proconfig.includes('search_path=""'));
+      assert.equal(row.args, "p_community_id uuid");
+      assert.deepEqual((await db.query("select has_function_privilege('anon', $1, 'EXECUTE') as anon, has_function_privilege('authenticated', $1, 'EXECUTE') as authenticated", [`public.${row.proname}(uuid)`])).rows, [{ anon: false, authenticated: true }]);
+    }
+  });
 
   it("creates multiple communities with UUIDs and exactly one matching owner membership atomically", async () => {
     await asUser(alice);
