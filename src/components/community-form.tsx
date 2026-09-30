@@ -30,7 +30,7 @@ export function CommunityForm() {
         <option value="instant">Instant</option><option value="approval_required">Approval required</option><option value="invitation_only">Invitation only</option>
       </select>
     </label>
-    <p id="joining-help" className="text-sm text-muted-foreground">Instant joining is available only for public and unlisted communities. Private communities cannot admit members yet. Approval requests and invitations are not available yet. You become the owner when you create this community.</p>
+    <p id="joining-help" className="text-sm text-muted-foreground">Instant: eligible users join public/unlisted communities immediately. Approval required: eligible users request access to public/unlisted communities and an owner or admin must approve. Invitation only: users cannot request access; invitation delivery is not available yet. Private communities accept no unsolicited joins or requests, even with approval required saved. You become the owner when you create this community.</p>
     <button type="submit" disabled={pending} className="form-button">{pending ? "Creating…" : "Create community"}</button>
     <p role={state.status === "error" ? "alert" : "status"} aria-live="polite" className="text-sm">{state.message}</p>
   </form>;

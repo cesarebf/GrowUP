@@ -1,6 +1,6 @@
 # GrowUP Phase 1 authorization and product decisions
 
-Status: **approved planning checkpoint, with the product owner's amendments**. Core Auth/private profiles, the [community foundation](COMMUNITY_FOUNDATION.md), and instant join/voluntary leave are committed and hosted-validated. Recovery completion awaits custom SMTP/domain infrastructure. Owner community settings are implemented locally for review; other admission and role-management workflows remain deferred.
+Status: **approved decisions, with the product owner's amendments**. Auth/private profiles, the [community foundation](COMMUNITY_FOUNDATION.md), instant join/leave, and owner settings are committed through `4516d35`; their schema effects are present in hosted development. [Approval requests](COMMUNITY_MEMBERSHIP_REQUESTS.md) include the reviewed local backend and Pass 2 requester/reviewer UI. Final review and hosted rollout remain pending. Recovery completion awaits custom SMTP/domain infrastructure. Invitations and role-management workflows remain deferred.
 
 ## Visibility and joining
 
@@ -8,20 +8,22 @@ Visibility controls discovery and nonmember previews; joining controls admission
 
 | Visibility | Approved discovery behavior | Admission planning |
 | --- | --- | --- |
-| Public | Discoverable through GrowUP home/search/discovery; content remains member-gated by default. | Instant approved; approval-required/invitation-only deferred; paid later. |
-| Unlisted | Accessible by direct link; excluded from normal discovery. A link is not permission to read member content. | Instant approved; approval-required/invitation-only deferred. |
-| Private | Not publicly discoverable. Nonmember and invitation-preview fields must be explicitly limited. | Instant admission denied even if stored; other modes deferred. |
+| Public | Discoverable through future GrowUP home/search/discovery; content remains member-gated by default. | Instant implemented; approval-required implementation local only; invitation-only and paid deferred. |
+| Unlisted | Accessible by direct link; excluded from normal discovery. A link is not permission to read member content. | Instant implemented; approval-required implementation local only; invitation-only deferred. |
+| Private | Not publicly discoverable. Nonmember and invitation-preview fields must be explicitly limited. | Both unsolicited instant admission and approval requests are denied, regardless of stored policy. Invitations deferred. |
 
 | Join mode | Proposed access rule |
 | --- | --- |
 | Instant (approved) | Verified, eligible user explicitly joins only public/unlisted communities with `join_policy = instant`; current membership is created once, as `member`. Private + instant remains valid stored configuration but cannot admit users. |
-| Request approval | User submits one pending request; owner/admin approves or rejects. Pending/rejected requests grant no member access. |
+| Request approval (approved; local only) | Eligible nonmember explicitly submits to public/unlisted + approval_required with a shared attempt-specific name. Owner/admin approves or rejects; moderator cannot review. Requests grant no access. Approval atomically creates only member. |
 | Invitation-only | Owner/admin issues an expiring, revocable, single-use invitation bound to the recipient's verified email. Acceptance is explicit; invitations grant member status only. |
 | Paid access, later | Defer to Phase 5. Payment entitlement is an additional gate; payment must not bypass bans or required approval. Do not collect payments or create fake subscriptions in Phase 1. |
 
 Approved current lifecycle: a `community_memberships` row represents current membership, with no status column. Voluntary leave deletes the row and revokes membership-derived access, regardless of current admission policy; already-absent leave is idempotent. Members, moderators, and admins may leave. Owners cannot leave until a future accepted transfer or approved closure workflow resolves ownership. Eligible former members may immediately rejoin when current rules permit instant admission, always as `member`; former staff roles are never restored. Already-current members retain their role on an idempotent join.
 
-All new admissions atomically recheck current account eligibility and community visibility/join policy. Bans/restrictions, approval requests, invitations, billing/entitlements, and moderation/audit history remain separate future systems, not membership status values. Membership alone must not grant future paid/resource entitlements. Visibility changes must not expose existing content, profiles, or rosters automatically; previously public information cannot be recalled.
+All new admissions atomically recheck current account eligibility and community visibility/join policy. Requests are separate attempts, never membership status values. Repeated pending submission returns the same ID/name/time; terminal rejected/withdrawn/cancelled attempts require explicit reapplication into a new row. Old approvals never re-enroll departed members. Settings that close eligibility cancel pending requests as policy_changed, without changing current memberships. Restoring eligibility never reopens old attempts. An already-member review cancels the request and preserves the current role. No cooldown is introduced. Bans/restrictions, invitations, billing/entitlements, and moderation remain deferred systems. Membership grants no paid/resource entitlement.
+
+The requester explicitly enters a name for each attempt. The UI shows: “This name will be shared with this community's owner and admins to review your request.” It is a self-chosen label, not verified identity, and must be rendered as escaped plain text. Never copy private profile or provider names automatically; emails and private profiles stay private. The queue omits Auth IDs and reviewer identity; own receipts omit private-community metadata when the requester is a nonmember.
 
 ## Role permissions
 
@@ -78,10 +80,10 @@ Confirm provider setup and production email delivery before release. Technical r
 
 Resolve these before the affected future implementation; they do not block the implemented Auth or community foundation:
 
-1. Approval/invitation rules and supported combinations, future preview extensions, invitation expiry, and rejected-request reapplication rules. Instant admission is approved only for public/unlisted + instant. All nine configurations remain storable; private nonmembers receive no metadata. Public/unlisted projections are defined in the implementation document.
+1. Invitation rules, expiry and future preview extensions. Approval combinations, explicit shared-name privacy, cancellation, and reapplication are resolved in the request contract. All nine configurations remain storable; private nonmembers receive no community metadata.
 2. Operational staff access to reported content, support recovery, and community-owner/admin MFA policy. Platform administrators will require MFA.
 3. Community closure, retention, and unavailable-owner recovery procedures.
 4. Exact globally public versus broader community-visible profile fields. Sensitive account data stays private; public exposure is conservative and future location is separate and opt-in.
 5. When to add Google sign-in and its provider/account-linking configuration.
 
-The current authorized slice adds only owner community settings to the hosted-validated join/leave checkpoint, with a new migration, minimal UI, and regression/security tests. Keep the established Auth architecture and private profile boundary. Do not add invitations, approvals, bans/restrictions systems, role management, ownership transfer, deletion, discovery, Google OAuth, payments, tiers, forum, chat, DMs, location, or courses. Leave this implementation uncommitted; do not push or apply its migration to hosted Supabase during this task.
+The current authorized slice includes approval-request Pass 2: requester/name-sharing/withdrawal controls, bounded own history, owner/admin review, accurate creation/settings help, and focused Server Action/UI tests. The independently reviewed Pass 1 database state machine and services remain unchanged. Preserve Auth and private profiles. Invitations, bans/restrictions systems, role management, ownership transfer, deletion workflows, discovery, OAuth, payments and content remain outside scope. Leave the implementation uncommitted and unpushed; do not mutate hosted Supabase, apply the new migration, or replay/repair historical migrations.

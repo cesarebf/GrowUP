@@ -21,6 +21,7 @@ export async function updateCommunitySettingsAction(_: ActionState, form: FormDa
   if (result.status === "success") {
     revalidatePath("/communities");
     revalidatePath(`/c/${result.slug}`);
+    revalidatePath(`/c/${result.slug}/requests`);
     return { status: "success", message: "Community settings saved." };
   }
   return result;

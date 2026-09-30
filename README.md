@@ -1,6 +1,6 @@
 # GrowUP
 
-Group + Grow. Next.js application with Supabase email/password Auth, private account profiles, and a minimal community foundation with instant join and voluntary leave. Other admission workflows and commercial features remain deferred.
+Group + Grow. Next.js application with Supabase email/password Auth, private profiles, communities, instant join/leave, and owner settings. Approval requests now include the local backend and requester/reviewer UI; final review and hosted rollout remain pending. Commercial features remain deferred.
 
 ## Local development
 
@@ -11,14 +11,14 @@ npm ci
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000). Copy `.env.example` to ignored `.env.local` and set `APP_URL` (locally `http://localhost:3000`), `NEXT_PUBLIC_SUPABASE_URL`, and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Use a separate development Supabase project and follow [Auth setup](docs/AUTH_SETUP.md) to apply the migration and configure email templates. No service-role key is needed. Without configuration, the homepage and local checks work; Auth is unavailable. Never commit credentials or put secrets in `NEXT_PUBLIC_*` variables.
+Open [localhost:3000](http://localhost:3000). Copy `.env.example` to ignored `.env.local` and set `APP_URL` (locally `http://localhost:3000`), `NEXT_PUBLIC_SUPABASE_URL`, and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Use a separate development project and follow [Auth setup](docs/AUTH_SETUP.md) for email configuration. Existing hosted development already has the four historical migration effects but lacks tracking; consult the [request rollout runbook](docs/COMMUNITY_MEMBERSHIP_REQUESTS.md) before any migration operation. No service-role key is needed. Without configuration, the homepage and local checks work; Auth is unavailable. Never commit credentials or put secrets in `NEXT_PUBLIC_*` variables.
 
 | Command | Purpose |
 | --- | --- |
 | `npm run dev` | Start the development server. |
 | `npm run lint` | Run ESLint with the Next.js and TypeScript rules; warnings fail validation. |
 | `npm run typecheck` | Generate Next.js route types, then check strict TypeScript without emitting code. Works before the first build. |
-| `npm test` | Run Auth/community services, SSR cookie, and PostgreSQL grant/RLS/invariant tests without hosted credentials. |
+| `npm test` | Run services, Server Actions, UI rendering/orchestration, SSR cookie, and PostgreSQL grant/RLS/invariant tests without hosted credentials. |
 | `npm run build` | Create the production build. |
 | `npm start` | Serve the production build locally. |
 
@@ -47,4 +47,8 @@ The Supabase packages provide managed Auth and SSR cookie handling; `server-only
 
 Core email/password Auth, sessions, private profiles, and RLS are committed and live-validated. Password-recovery completion is deferred until custom SMTP/domain infrastructure is available; the existing recovery implementation remains in place. See [Auth setup](docs/AUTH_SETUP.md).
 
-The hosted-validated [community foundation](docs/COMMUNITY_FOUNDATION.md) provides `/communities/new`, `/communities`, and `/c/{slug}`. A third, local migration adds instant join for eligible public/unlisted + instant communities and confirmed voluntary leave for nonowners. Membership rows represent current participation; leave deletes the row and rejoin starts as `member`. Private communities expose no metadata to nonmembers. Review and separately authorize hosted application of the new migration before deployment. Approval, invitation, bans/restrictions, role-management, transfer, deletion, discovery, Google OAuth, public/community/location profiles, Stripe, tiers, courses, forum, chat, DMs, and creator plans remain deferred.
+The committed checkpoint is `4516d35b4c91a6ec436a1bf7947759d0a1075172` (`feat: add owner community settings`). Its [community foundation](docs/COMMUNITY_FOUNDATION.md) provides `/communities/new`, `/communities`, `/c/{slug}`, instant join/leave, and owner settings. Membership means current participation; leave deletes the row and rejoin starts as member. Private communities expose no metadata to nonmembers.
+
+The new [membership-request feature](docs/COMMUNITY_MEMBERSHIP_REQUESTS.md) adds immutable attempt history, public/unlisted approval-required submission, withdrawal, owner/admin review, and atomic settings cancellation, with strict database and server boundaries. Pass 2 adds explicit shared-name controls on the landing, `/communities/requests` for own history, and `/c/{slug}/requests` for authorized review. It remains local and uncommitted: no hosted mutation, migration-history repair, push, or deployment is included. Six authenticated RPCs use ordinary session clients. Invitations, bans, role management, transfer, deletion workflows, discovery, OAuth, public profiles, payments and content remain deferred.
+
+`npm test` runs PGlite and service tests by default. For independent PostgreSQL sessions, supply `GROWUP_TEST_PSQL` and `GROWUP_TEST_PG_PORT` pointing to a disposable loopback test server, then run the same command. The optional harness creates/drops its own random database using local `postgres`, emulates Supabase Auth, and never accepts a hosted hostname. See the runbook for setup and limits; without those variables only the concurrency suite is skipped.

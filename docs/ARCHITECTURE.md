@@ -1,6 +1,6 @@
 # GrowUP architecture
 
-Status: the Next.js/TypeScript/Tailwind/shadcn/ui scaffold, Auth/private profiles, [community foundation](COMMUNITY_FOUNDATION.md), and instant join/voluntary leave are committed and hosted-validated. Password-recovery completion awaits custom SMTP/domain infrastructure. Owner community settings are implemented locally with a separate RPC migration and isolation tests, awaiting review and hosted validation. Architecture beyond these slices is proposed.
+Status: the scaffold, Auth/private profiles, [community foundation](COMMUNITY_FOUNDATION.md), instant join/leave, and owner settings are committed through `4516d35`. The four historical migration effects are present in hosted development, whose migration history is untracked. [Membership requests](COMMUNITY_MEMBERSHIP_REQUESTS.md) include a locally tested database/server foundation and requester/reviewer UI; the new migration remains unapplied. Password-recovery completion awaits custom SMTP/domain infrastructure. Architecture beyond these slices is proposed.
 
 ## Shape and boundaries
 
@@ -21,7 +21,9 @@ Next.js documents server data boundaries and the need to authorize server entry 
 
 ## Tenancy and authorization
 
-The [approved Phase 1 authorization matrix](PHASE_1_DECISIONS.md) guides server authorization and database allow/deny tests. Implementation covers email/password Auth, private profiles, community creation/read, instant join/voluntary leave, and owner-only settings with database-enforced ownership and admission rules. The settings RPC accepts only four metadata fields and an ownership-checked locator; it never changes slugs, ownership, or memberships. Other admission and role-management workflows remain deferred; unresolved future policy details must not silently become behavior. Profiles use stable Auth user IDs to allow later providers without coupling identity to email/password.
+The [approved Phase 1 authorization matrix](PHASE_1_DECISIONS.md) guides server authorization and database allow/deny tests. Implementation covers email/password Auth, private profiles, community creation/read, instant join/leave, owner-only settings, and the local approval-request backend. Settings still accept only four metadata fields and an ownership-checked locator; the new settings trigger cancels ineligible pending requests atomically without changing slugs, ownership, or memberships. Invitations and role management remain deferred. Profiles use stable Auth user IDs to allow later providers without coupling identity to email/password.
+
+Request-specific Server Actions call `server-only` services using the existing cookie-bound client and `getVerifiedUser`. Six authenticated database entry points authorize current identity and tenant permissions; an internal review helper and trigger functions have no client EXECUTE. Request tables have no direct client grants/policies. Services validate inputs and returned projections, redact errors, and never retry ambiguous submissions. Mutations revalidate community list, landing, and request-management routes; reads have no shared cache. Pass 2 adds dynamic requester history and owner/admin review pages, using only those services. Client forms share the existing validator and require status reconciliation after mutation results; membership always takes precedence. No service-role client or backend change is introduced.
 
 A community is the tenant boundary. A user may belong to many communities. Global identity, discovery metadata, user-to-user DMs, and creator billing relationships have explicit scopes rather than a fabricated community owner.
 

@@ -28,7 +28,7 @@ export function CommunitySettingsForm({ community }: { community: CommunitySetti
           <option value="instant">Instant</option><option value="approval_required">Approval required</option><option value="invitation_only">Invitation only</option>
         </select>
       </label>
-      <p id="settings-policy-help" className="text-sm text-muted-foreground">Changes keep existing members. Instant joining works only for public and unlisted communities. Private + instant can be saved but does not allow joining. Approval requests and invitations are not available yet. The community URL cannot be edited.</p>
+      <p id="settings-policy-help" className="text-sm text-muted-foreground">Instant: eligible users join public/unlisted communities immediately. Approval required: eligible users request access to public/unlisted communities and an owner or admin must approve. Invitation only: users cannot request access; invitation delivery is not available yet. Private communities accept no unsolicited joins or requests, even with instant or approval required saved. Changes keep existing members. Making the community private or leaving approval required cancels pending requests. The community URL cannot be edited.</p>
       <button type="submit" disabled={pending} className="form-button">{pending ? "Saving…" : "Save settings"}</button>
       <p role={state.status === "error" ? "alert" : "status"} aria-live="polite" className="text-sm">{state.message}</p>
     </form>
