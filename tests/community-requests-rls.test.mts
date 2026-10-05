@@ -2,6 +2,7 @@ import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
+import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
 
 const owner = "11111111-1111-4111-8111-111111111111";
 const applicant = "22222222-2222-4222-8222-222222222222";
@@ -16,7 +17,8 @@ let db: PGlite, community: string, other: string;
 
 describe("membership request database state machine and privacy", { concurrency: false }, () => {
   before(async () => {
-    db = new PGlite();
+    db = new PGlite({ extensions: { pgcrypto } });
+    await db.exec("create schema extensions; create extension pgcrypto with schema extensions");
     await db.exec(`
       create role anon nologin; create role authenticated nologin; create schema auth;
       create table auth.users (id uuid primary key, email_confirmed_at timestamptz, banned_until timestamptz,

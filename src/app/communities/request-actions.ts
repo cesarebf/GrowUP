@@ -22,6 +22,9 @@ async function requestAction(mutate: typeof submitMembershipRequest, form: FormD
     revalidatePath("/communities");
     revalidatePath("/c/[slug]", "page");
     revalidatePath("/c/[slug]/requests", "page");
+    revalidatePath("/communities/requests");
+    revalidatePath("/c/[slug]/invitations", "page");
+    revalidatePath("/invite/[token]", "page");
   }
   return result;
 }

@@ -95,8 +95,10 @@ describe("membership request presentation and page orchestration", () => {
       assert.equal(rpc.mock.calls.some((call) => call.arguments[0] === "get_my_community_membership_requests"), false);
       if (role === "owner") assert.match(html, /Community settings/);
       else assert.match(html, /Leave community/);
-      if (["admin", "owner"].includes(role)) assert.match(html, /Review membership requests/);
-      else assert.doesNotMatch(html, /Review membership requests/);
+      if (["admin", "owner"].includes(role)) {
+        assert.match(html, /Review membership requests/);
+        assert.match(html, /Manage invitations/);
+      } else assert.doesNotMatch(html, /Review membership requests|Manage invitations/);
     });
   }
   for (const visibility of ["public", "unlisted", "private"]) {
@@ -288,6 +290,7 @@ describe("membership request presentation and page orchestration", () => {
     for (const html of [render(React.createElement(CommunityForm)), render(React.createElement(CommunitySettingsForm, { community: settings }))]) {
       assert.match(html, /join public\/unlisted communities immediately/); assert.match(html, /owner or admin must approve/);
       assert.match(html, /Invitation only: users cannot request access/); assert.match(html, /Private communities accept no unsolicited/);
+      assert.match(html, /single-use invitation link/); assert.match(html, /limited preview available with a valid invitation/);
       assert.doesNotMatch(html, /Approval requests and invitations are not available yet/);
     }
   });

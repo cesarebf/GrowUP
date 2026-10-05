@@ -1,6 +1,8 @@
 # Approval-required membership requests — backend and UI
 
-Implemented locally against `4516d35b4c91a6ec436a1bf7947759d0a1075172` on 2026-09-29. Pass 1 received independent review: **PASS WITH NON-BLOCKING NOTES**. Pass 2 adds the approved requester/reviewer UI while preserving the reviewed backend byte-for-byte. Both passes remain uncommitted. This document is not rollout authorization; the migration remains unapplied to hosted Supabase.
+Requests are committed at `937dbc4`; their schema effects are present in development, which tracks only `20260930000900 / community_membership_requests`. The local filename remains `20260929140004_community_membership_requests.sql`; do not repair that version difference or replay historical migrations. The sections below retain the original implementation/validation record from 2026-09-29, not current rollout authorization.
+
+[Invitation Pass 1](COMMUNITY_INVITATIONS.md) uses the existing request state machine without replacing its migration/functions/guards: successful new admission atomically consumes the invite and cancels only a pending own request as cancelled/already_member/NULL reviewer. Active already-members cancel anomalous pending requests without consuming the invite. Invalid invites have no effect; rejected/withdrawn/approved/cancelled history remains exact. Concurrent approval-first leaves the request approved and invite unused; invite-first makes subsequent review informational. Independent PostgreSQL tests exercise both orders. The invitation migration remains local/unapplied.
 
 ## Pass 2 UI
 

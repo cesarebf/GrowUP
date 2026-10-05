@@ -17,7 +17,8 @@ export function reportError(operation: string, error: unknown) {
   const code = typeof error === "object" && error && "code" in error ? error.code : undefined;
   console.error("GrowUP operation failed", {
     operation,
-    code: typeof code === "string" && /^[a-zA-Z0-9_]{1,64}$/.test(code) ? code : "unexpected",
+    // Exclude capability-shaped values even if supplied as a provider code.
+    code: typeof code === "string" && /^[a-zA-Z0-9_]{1,48}$/.test(code) ? code : "unexpected",
   });
 }
 

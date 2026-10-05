@@ -79,7 +79,7 @@ describe("membership requests with independent PostgreSQL sessions", { skip: !en
     databaseCreated = true;
     observer = new Session("growup_requests_observer");
     a = new Session("growup_requests_a"); b = new Session("growup_requests_b");
-    await observer.ok(`create schema auth;
+    await observer.ok(`create schema extensions; create extension pgcrypto with schema extensions; create schema auth;
       create table auth.users(id uuid primary key,email_confirmed_at timestamptz,banned_until timestamptz,
         raw_user_meta_data jsonb default '{}',is_anonymous boolean default false,deleted_at timestamptz);
       create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
@@ -103,7 +103,7 @@ describe("membership requests with independent PostgreSQL sessions", { skip: !en
     await maintenance?.close();
   });
   beforeEach(async () => {
-    await observer.ok(`truncate public.community_membership_requests,public.community_memberships,public.communities,public.private_profiles,auth.users;
+    await observer.ok(`truncate public.community_invitations,public.community_membership_requests,public.community_memberships,public.communities,public.private_profiles,auth.users;
       insert into auth.users(id,email_confirmed_at) values ('${owner}',now()),('${applicant}',now()),('${admin}',now()),('${outsider}',now()),('${extra}',now());
       begin;
       insert into public.communities(id,owner_user_id,name,slug,visibility,join_policy) values

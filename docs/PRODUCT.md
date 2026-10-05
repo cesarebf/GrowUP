@@ -1,6 +1,6 @@
 # GrowUP product
 
-Status: Auth/private profiles, the [community foundation](COMMUNITY_FOUNDATION.md), instant join/leave, and owner settings are committed through `4516d35` and their database effects are present in hosted development. [Approval requests](COMMUNITY_MEMBERSHIP_REQUESTS.md) have a locally tested backend and requester/reviewer UI; final review and hosted migration rollout remain pending. Password recovery completion awaits custom SMTP/domain infrastructure. “Confirmed” means required by the product vision, not necessarily part of the first release. Other designs remain proposals unless explicitly identified as requirements.
+Status: Auth, profiles, communities, instant join/leave, owner settings and requests are committed through `937dbc4` and present in development. Invitation planning is committed at `699775f`; [invitation Pass 1](COMMUNITY_INVITATIONS.md) has reviewed local backend and Pass 2 UI, awaiting final integrated review and hosted validation. Invitations require no paid infrastructure/domain. General recovery completion remains deferred. “Confirmed” means required by the product vision, not necessarily part of the first release.
 
 ## Vision
 
@@ -21,7 +21,8 @@ GrowUP (“Group + Grow”) is an accessible, affordable, feature-rich community
 - Creators explicitly select public, unlisted, or private visibility; no implicit visibility default. Public communities appear in GrowUP discovery, unlisted communities are accessed by link, and private communities are not publicly discoverable. Content stays member-gated by default.
 - Instant admission permits only public/unlisted + instant for currently eligible accounts. Private + instant stays valid configuration but cannot admit users. Voluntary leave deletes current membership for members/moderators/admins, independent of admission policy; owners cannot leave. Eligible rejoining follows current rules and always starts as `member`.
 - Only the current eligible owner may edit community name, short description, visibility, and join policy in the settings slice. Slug editing remains deferred. Changing visibility/admission policy does not remove existing members; private + instant remains storable but denies new instant joins.
-- Approval requests accept eligible nonmembers only for public/unlisted + approval_required. Attempts use an explicitly shared name; owner/admin review creates only member on approval. Rejection/withdrawal/cancellation preserve history and allow explicit new applications when eligible. Incompatible settings cancel pending requests atomically; private communities never accept unsolicited requests. The local backend and requester/reviewer controls are implemented; final review and hosted rollout remain pending.
+- Approval requests accept eligible nonmembers only for public/unlisted + approval_required. Attempts use an explicitly shared name; owner/admin approval creates only member. Terminal attempts preserve history and permit explicit reapplication. Incompatible settings cancel pending requests; private communities deny unsolicited requests.
+- Invitations are community-owned, revocable single-use capabilities, not email-bound, with exactly 168 elapsed hours of validity. Current owner/admin manages them; eligible authenticated holders explicitly accept as member across every stored visibility/join policy. Existing memberships stay exact and leave the invite unused. Successful new admission consumes it and cancels pending own requests atomically. Policy changes and creator demotion do not revoke grants. Backend and UI are local; final integrated review and hosted validation remain pending.
 - Users may own multiple communities; each community has exactly one owner and can have multiple admins/moderators. Transfers require acceptance; the previous owner becomes admin unless explicitly removed.
 - The current Auth slice uses email/password, verified email, recovery, persistent secure sessions, logout, and private profiles. Google OAuth is deferred; platform administrators will eventually require MFA.
 
@@ -34,7 +35,7 @@ Achievements, points, levels, leaderboards, referrals, creator/platform analytic
 The [approved Phase 1 decision matrix](PHASE_1_DECISIONS.md) records the accepted policies and remaining details. Sensitive account data is private; future community-facing profiles may expose more than globally public profiles, and location consent remains separate.
 
 - Initial audience, launch countries/languages/currencies, measurable affordability goals, and the exact first-release scope.
-- Invitation visibility combinations/expiry, public preview extensions, and discoverable directory/profile fields. Approval-request combinations, reapplication and name-sharing rules are resolved.
+- Future public preview extensions and discoverable directory/profile fields. Invitation/limited-capability-preview rules and approval-request rules are resolved in their accepted contracts.
 - Operational moderation/support procedures, unavailable-owner recovery, community closure, and community-staff MFA.
 - Creator billing per community versus per creator/account; plan limits, prices, rates, trials, and changes between arrangements.
 - Whether members can hold multiple tiers, whether higher tiers inherit benefits, and upgrade/downgrade, cancellation, refund, and delinquency rules.

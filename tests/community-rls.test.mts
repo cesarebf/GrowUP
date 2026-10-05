@@ -2,6 +2,7 @@ import { after, afterEach, before, beforeEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { PGlite } from "@electric-sql/pglite";
+import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
 
 const alice = "11111111-1111-4111-8111-111111111111";
 const bob = "22222222-2222-4222-8222-222222222222";
@@ -15,7 +16,8 @@ let bobId: string;
 // Supabase Auth/JWT plumbing is emulated, as in the profile isolation suite.
 describe("community database security and invariants", { concurrency: false }, () => {
   before(async () => {
-    db = new PGlite();
+    db = new PGlite({ extensions: { pgcrypto } });
+    await db.exec("create schema extensions; create extension pgcrypto with schema extensions");
     await db.exec(`
       create role anon nologin;
       create role authenticated nologin;
@@ -33,7 +35,7 @@ describe("community database security and invariants", { concurrency: false }, (
       alter default privileges in schema public grant all on tables to anon, authenticated;
       alter default privileges in schema public grant execute on functions to anon, authenticated;
     `);
-    for (const migration of ["20260924000100_private_profiles.sql", "20260928000100_community_foundation.sql", "20260928000200_community_join_leave.sql", "20260928000300_community_settings.sql", "20260929140004_community_membership_requests.sql"]) {
+    for (const migration of ["20260924000100_private_profiles.sql", "20260928000100_community_foundation.sql", "20260928000200_community_join_leave.sql", "20260928000300_community_settings.sql", "20260929140004_community_membership_requests.sql", "20260930175249_community_invitations.sql"]) {
       await db.exec(await readFile(new URL(`../supabase/migrations/${migration}`, import.meta.url), "utf8"));
     }
     await db.query("insert into auth.users(id, email_confirmed_at) values ($1, now()), ($2, now()), ($3, null)", [alice, bob, unverified]);

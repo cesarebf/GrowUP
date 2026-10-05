@@ -22,6 +22,8 @@ export async function updateCommunitySettingsAction(_: ActionState, form: FormDa
     revalidatePath("/communities");
     revalidatePath(`/c/${result.slug}`);
     revalidatePath(`/c/${result.slug}/requests`);
+    revalidatePath("/c/[slug]/invitations", "page");
+    revalidatePath("/invite/[token]", "page");
     return { status: "success", message: "Community settings saved." };
   }
   return result;
@@ -41,6 +43,8 @@ async function membershipAction(operation: "join" | "leave", form: FormData): Pr
   if (result.status === "success") {
     revalidatePath("/communities");
     revalidatePath("/c/[slug]", "page");
+    revalidatePath("/c/[slug]/invitations", "page");
+    revalidatePath("/invite/[token]", "page");
     redirect(result.path);
   }
   return result;

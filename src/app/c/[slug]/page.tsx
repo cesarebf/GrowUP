@@ -49,9 +49,11 @@ export default async function CommunityPage({ params }: { params: Promise<{ slug
           ? <MembershipRequestForm key={`${community.id}:${requests.data[0]?.request_id ?? "new"}:${requests.data[0]?.status ?? "new"}`} communityId={community.id} latest={requests.data[0] ?? null} />
           : <div className="space-y-3"><p role="alert" className="text-sm">Your request status could not be loaded. Refresh before submitting a request.</p><RequestRefresh /></div>
           : <p className="text-sm"><Link href="/sign-in" prefetch={false} className="underline">Sign in with a verified, eligible account</Link> to request approval.</p>
-        : <p className="text-sm text-muted-foreground">Joining this community is not available for its current admission policy.</p>}
+        : <p className="text-sm text-muted-foreground">To join, open a valid invitation link shared by an owner or admin.</p>}
     {(community.viewer_role === "owner" || community.viewer_role === "admin") &&
       <Link href={`/c/${community.slug}/requests`} prefetch={false} className="block text-sm underline">Review membership requests</Link>}
+    {(community.viewer_role === "owner" || community.viewer_role === "admin") &&
+      <Link href={`/c/${community.slug}/invitations`} prefetch={false} className="block text-sm underline">Manage invitations</Link>}
     {community.viewer_role === "owner" && <CommunitySettingsForm community={{
       id: community.id, name: community.name, description: community.description,
       visibility: community.visibility, join_policy: community.join_policy,

@@ -23,14 +23,14 @@ export function CommunityForm() {
         <option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option>
       </select>
     </label>
-    <p id="visibility-help" className="text-sm text-muted-foreground">Public: eligible for future discovery. Unlisted: accessible by link. Both publish the name and description. Private: visible only to members. Member content stays restricted in every mode.</p>
+    <p id="visibility-help" className="text-sm text-muted-foreground">Public: eligible for future discovery. Unlisted: accessible by link. Both publish the name and description. Private: hidden from nonmembers except for the limited preview available with a valid invitation. Member content stays restricted in every mode.</p>
     <label htmlFor="join_policy" className="block text-sm font-medium">Join policy
       <select id="join_policy" name="join_policy" required defaultValue="" className="form-input" aria-describedby="joining-help">
         <option value="" disabled>Choose a join policy</option>
         <option value="instant">Instant</option><option value="approval_required">Approval required</option><option value="invitation_only">Invitation only</option>
       </select>
     </label>
-    <p id="joining-help" className="text-sm text-muted-foreground">Instant: eligible users join public/unlisted communities immediately. Approval required: eligible users request access to public/unlisted communities and an owner or admin must approve. Invitation only: users cannot request access; invitation delivery is not available yet. Private communities accept no unsolicited joins or requests, even with approval required saved. You become the owner when you create this community.</p>
+    <p id="joining-help" className="text-sm text-muted-foreground">Instant: eligible users join public/unlisted communities immediately. Approval required: eligible users request access to public/unlisted communities and an owner or admin must approve. Invitation only: users cannot request access; an owner or admin can share a single-use invitation link. Private communities accept no unsolicited joins or requests, even with approval required saved. You become the owner when you create this community.</p>
     <button type="submit" disabled={pending} className="form-button">{pending ? "Creating…" : "Create community"}</button>
     <p role={state.status === "error" ? "alert" : "status"} aria-live="polite" className="text-sm">{state.message}</p>
   </form>;

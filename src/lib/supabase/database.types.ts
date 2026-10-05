@@ -1,9 +1,10 @@
 // Maintained contract for checked-in migrations; baseline compared with hosted
-// generated types on 2026-09-29. The request migration is local only. Regenerate
-// and compare after its separately authorized rollout. Internal functions with
+// generated types on 2026-09-29. Invitations are local only. Regenerate
+// and compare after their separately authorized rollout. Internal functions with
 // revoked client EXECUTE are deliberately absent from this application contract.
 import type { CommunityRole, JoinPolicy, Visibility } from "../communities/validation.ts";
 import type { CancellationReason, PendingRequest, RequesterMutation, ReviewerMutation, RequestReceipt, RequestStatus } from "../communities/request-validation.ts";
+import type { InvitationAdmission, InvitationHistory, InvitationPreview, InvitationReceipt } from "../communities/invitation-validation.ts";
 
 type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
@@ -21,10 +22,20 @@ type MembershipRequestRow = {
   resolved_by_user_id: string | null; cancellation_reason: CancellationReason | null;
 };
 type RequestLocator = { p_community_id: string; p_request_id: string };
+type InvitationRow = {
+  id: string; community_id: string; token_hash: string; created_by_user_id: string; created_at: string; expires_at: string;
+  accepted_at: string | null; accepted_by_user_id: string | null; revoked_at: string | null; revoked_by_user_id: string | null;
+};
 
 export type Database = {
   public: {
     Tables: {
+      community_invitations: {
+        Row: InvitationRow;
+        Insert: Pick<InvitationRow, "community_id" | "token_hash" | "created_by_user_id" | "created_at" | "expires_at"> & Partial<InvitationRow>;
+        Update: Partial<InvitationRow>;
+        Relationships: [{ foreignKeyName: "community_invitations_community_id_fkey"; columns: ["community_id"]; isOneToOne: false; referencedRelation: "communities"; referencedColumns: ["id"] }];
+      };
       community_membership_requests: {
         Row: MembershipRequestRow;
         Insert: Pick<MembershipRequestRow, "community_id" | "requester_user_id" | "requester_display_name"> & Partial<Omit<MembershipRequestRow, "community_id" | "requester_user_id" | "requester_display_name">>;
@@ -70,6 +81,11 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      create_community_invitation: { Args: { p_community_id: string; p_token_hash: string }; Returns: InvitationReceipt[] };
+      list_community_invitations: { Args: { p_community_id: string; p_before_created_at?: string | null; p_before_id?: string | null; p_limit?: number }; Returns: InvitationHistory[] };
+      revoke_community_invitation: { Args: { p_community_id: string; p_invitation_id: string }; Returns: InvitationHistory[] };
+      get_community_invitation_preview: { Args: { p_token: string }; Returns: InvitationPreview[] };
+      accept_community_invitation: { Args: { p_token: string }; Returns: InvitationAdmission[] };
       request_community_membership: { Args: { p_community_id: string; p_display_name: string }; Returns: RequesterMutation[] };
       withdraw_community_membership_request: { Args: RequestLocator; Returns: RequesterMutation[] };
       approve_community_membership_request: { Args: RequestLocator; Returns: ReviewerMutation[] };

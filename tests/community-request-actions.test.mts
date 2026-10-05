@@ -39,7 +39,7 @@ describe("request Server Actions with real services", () => {
       assert.deepEqual(createClient.mock.calls[0].arguments, [true]);
       assert.deepEqual(rpc.mock.calls[0].arguments, [rpcName, operation === "submit"
         ? { p_community_id: community, p_display_name: "Shared name" } : { p_community_id: community, p_request_id: request }]);
-      assert.deepEqual(revalidatePath.mock.calls.map((call) => call.arguments), [["/communities"], ["/c/[slug]", "page"], ["/c/[slug]/requests", "page"]]);
+      assert.deepEqual(revalidatePath.mock.calls.map((call) => call.arguments), [["/communities"], ["/c/[slug]", "page"], ["/c/[slug]/requests", "page"], ["/communities/requests"], ["/c/[slug]/invitations", "page"], ["/invite/[token]", "page"]]);
     });
     it(`${operation} redirects unauthenticated users without calling a mutation or invalidation`, async () => {
       candidate = null;
@@ -84,7 +84,7 @@ describe("request Server Actions with real services", () => {
       rpcResult = { data: [result], error: null };
       assert.deepEqual(await action(idle, form(operation)), { status: "success", data: result });
     }
-    assert.equal(revalidatePath.mock.callCount(), 6);
+    assert.equal(revalidatePath.mock.callCount(), 12);
   });
   it("maps writable-client failures to a safe uncertain result and redacted diagnostics", async () => {
     const logger = mock.method(console, "error", () => {});
