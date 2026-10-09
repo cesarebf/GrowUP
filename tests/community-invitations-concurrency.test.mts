@@ -112,7 +112,7 @@ describe("invitations with independent PostgreSQL sessions", { skip: !enabled, c
     after(async () => { await Promise.all([a?.close(), b?.close(), observer?.close()]); if (databaseCreated)
         await maintenance.ok(`drop database ${database}`); await maintenance?.close(); });
     beforeEach(async () => {
-        await observer.ok(`truncate public.community_invitations,public.community_membership_requests,public.community_memberships,public.communities,public.private_profiles,auth.users;
+        await observer.ok(`truncate public.community_member_management_events,public.community_invitations,public.community_membership_requests,public.community_memberships,public.communities,public.private_profiles,auth.users;
       insert into auth.users(id,email_confirmed_at) values ('${owner}',now()),('${applicant}',now()),('${admin}',now()),('${outsider}',now()),('${extra}',now());
       begin;
       insert into public.communities(id,owner_user_id,name,slug,visibility,join_policy) values ('${community}','${owner}','Tenant','invite-race','public','approval_required'),('${other}','${outsider}','Other','other-race','unlisted','approval_required');

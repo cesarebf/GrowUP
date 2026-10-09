@@ -106,7 +106,7 @@ describe("membership request database state machine and privacy", { concurrency:
     assert.deepEqual(await rows(), before);
     await asUser(applicant);
     assert.deepEqual((await db.query("select * from public.community_memberships")).rows, []);
-    assert.deepEqual((await db.query("select * from public.communities")).rows, []);
+    assert.deepEqual((await db.query("select id,name,slug,description,visibility,join_policy,created_at,updated_at from public.communities")).rows, []);
   });
   for (const actor of [owner, admin, moderator]) it(`denies existing ${actor === owner ? "owner" : actor === admin ? "admin" : "moderator"} submission`, async () => {
     await asUser(actor); await denied(submitSql, [community, "Name"]);

@@ -1,6 +1,6 @@
 # GrowUP product
 
-Status: Auth, profiles, communities, instant join/leave, owner settings and requests are committed through `937dbc4` and present in development. Invitation planning is committed at `699775f`; [invitation Pass 1](COMMUNITY_INVITATIONS.md) has reviewed local backend and Pass 2 UI, awaiting final integrated review and hosted validation. Invitations require no paid infrastructure/domain. General recovery completion remains deferred. “Confirmed” means required by the product vision, not necessarily part of the first release.
+Status: checkpoint `0a5a0cf` includes completed invitations. The current accepted slice is [Community Role Management Pass 1](COMMUNITY_ROLE_MANAGEMENT.md): backend/services/tests implemented locally, independent backend/security review passed and local backend validation complete with 1,221 tests passed, including 125 real PostgreSQL concurrency cases. Hosted rollout, hosted Auth/PostgREST acceptance, final management UI and browser acceptance are not done; the feature and Phase 1 remain incomplete. General recovery completion remains deferred. “Confirmed” means required by the product vision, not necessarily part of the first release.
 
 ## Vision
 

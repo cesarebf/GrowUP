@@ -1,6 +1,6 @@
 # GrowUP architecture
 
-Status: Auth, profiles, communities, instant join/leave, settings and requests are committed through `937dbc4`; invitation planning is committed at clean base `699775f`. Hosted development contains those schema effects and tracks only `community_membership_requests`. [Invitation Pass 1](COMMUNITY_INVITATIONS.md) provides reviewed local database/server support; Pass 2 adds dynamic manager/recipient pages. Its isolated migration remains unapplied; final integrated review and hosted validation are pending. No domain or paid infrastructure is required. Architecture beyond approved slices remains proposed.
+Status: checkpoint `0a5a0cf` includes completed invitations. [Community Role Management Pass 1](COMMUNITY_ROLE_MANAGEMENT.md) implements the frozen database/server contract locally and remains uncommitted. Independent backend/security review passed and local backend validation is complete, including all 125 real PostgreSQL concurrency cases. Hosted rollout, hosted Auth/PostgREST acceptance, final management UI and browser acceptance are not done. No hosted state was inspected or changed in this pass. Architecture beyond approved slices remains proposed.
 
 ## Shape and boundaries
 
@@ -21,7 +21,7 @@ Next.js documents server data boundaries and the need to authorize server entry 
 
 ## Tenancy and authorization
 
-The [approved Phase 1 authorization matrix](PHASE_1_DECISIONS.md) guides server authorization and database allow/deny tests. Implementation covers email/password Auth, profiles, communities, instant join/leave, owner settings, requests and local invitation backend. Settings cancel ineligible pending requests without changing invitations, slugs, ownership or memberships. Role management remains deferred. Profiles use stable Auth user IDs independent of email/password.
+The [approved Phase 1 authorization matrix](PHASE_1_DECISIONS.md) guides server authorization and database allow/deny tests. Implementation covers email/password Auth, profiles, communities, instant join/leave, owner settings, requests and local invitation backend. Settings cancel ineligible pending requests without changing invitations, slugs, ownership or memberships. Role-management Pass 1 is implemented locally under the [frozen backend contract](COMMUNITY_ROLE_MANAGEMENT.md); all 125 real PostgreSQL concurrency cases passed. Hosted rollout and browser acceptance are not done. Profiles use stable Auth user IDs independent of email/password.
 
 Invitations use five narrow RPCs over an inaccessible hash-only table. The server generates 32 random bytes and SHA-256 hashes the 64-character hexadecimal secret; preview/acceptance hash internally in PostgreSQL. Identity and manager authority are checked from current DB state, with accounts → community → memberships → request → invitation locks. Existing membership is preserved; only a new member insertion consumes the invite. Pending requests cancel atomically. Expiry is database creation time plus exactly 168 elapsed hours, rechecked after waits. All routing is relative; absolute copy links use the running browser origin in Pass 2 presentation, without persistence. The sole temporary return transport is a host-only HttpOnly 60-minute cookie consumed after authoritative sign-in, without automatic acceptance. No new package, service-role client or external service.
 

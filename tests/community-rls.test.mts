@@ -35,7 +35,7 @@ describe("community database security and invariants", { concurrency: false }, (
       alter default privileges in schema public grant all on tables to anon, authenticated;
       alter default privileges in schema public grant execute on functions to anon, authenticated;
     `);
-    for (const migration of ["20260924000100_private_profiles.sql", "20260928000100_community_foundation.sql", "20260928000200_community_join_leave.sql", "20260928000300_community_settings.sql", "20260929140004_community_membership_requests.sql", "20260930175249_community_invitations.sql"]) {
+    for (const migration of ["20260924000100_private_profiles.sql", "20260928000100_community_foundation.sql", "20260928000200_community_join_leave.sql", "20260928000300_community_settings.sql", "20260929140004_community_membership_requests.sql", "20260930175249_community_invitations.sql", "20261008104916_community_role_management.sql"]) {
       await db.exec(await readFile(new URL(`../supabase/migrations/${migration}`, import.meta.url), "utf8"));
     }
     await db.query("insert into auth.users(id, email_confirmed_at) values ($1, now()), ($2, now()), ($3, null)", [alice, bob, unverified]);
@@ -330,7 +330,7 @@ describe("community database security and invariants", { concurrency: false }, (
       assert.deepEqual((await db.query("select role from public.community_memberships where community_id = $1", [id])).rows, [{ role }]);
       await leave(id);
       assert.equal((await landing("rejoin-target"))[0].viewer_role, null);
-      assert.equal((await db.query("select * from public.communities where id = $1", [id])).rows.length, 0);
+      assert.equal((await db.query("select id,name,slug,description,visibility,join_policy,created_at,updated_at from public.communities where id = $1", [id])).rows.length, 0);
       await join(id);
       assert.equal((await landing("rejoin-target"))[0].viewer_role, "member");
     });
@@ -344,7 +344,7 @@ describe("community database security and invariants", { concurrency: false }, (
       await leave(privateId);
       await leave(privateId);
       assert.deepEqual(await landing("alice-private"), []);
-      assert.deepEqual((await db.query("select * from public.communities where id = $1", [privateId])).rows, []);
+      assert.deepEqual((await db.query("select id,name,slug,description,visibility,join_policy,created_at,updated_at from public.communities where id = $1", [privateId])).rows, []);
       assert.deepEqual((await db.query("select * from public.community_memberships where community_id = $1", [privateId])).rows, []);
       await denied("select public.join_community($1)", [privateId]);
       assert.equal((await landing("bob-private"))[0].viewer_role, "owner");
@@ -409,9 +409,12 @@ describe("community database security and invariants", { concurrency: false }, (
   it("creates multiple communities with UUIDs and exactly one matching owner membership atomically", async () => {
     await asUser(alice);
     assert.match(publicId, /^[0-9a-f-]{36}$/);
-    const communities = (await db.query<{ id: string; owner_user_id: string }>("select id, owner_user_id from public.communities")).rows;
+    await denied("select owner_user_id from public.communities");
+    await db.exec("reset role");
+    const communities = (await db.query<{ id: string; owner_user_id: string }>("select id, owner_user_id from public.communities where owner_user_id=$1", [alice])).rows;
     assert.equal(communities.length, 3);
     assert.ok(communities.every((row) => row.owner_user_id === alice));
+    await asUser(alice);
     const memberships = (await db.query<{ user_id: string; role: string }>("select user_id, role from public.community_memberships")).rows;
     assert.equal(memberships.length, 3);
     assert.ok(memberships.every((row) => row.user_id === alice && row.role === "owner"));
@@ -508,8 +511,8 @@ describe("community database security and invariants", { concurrency: false }, (
     const rows = (await db.query<{ community_id: string; user_id: string }>("select community_id, user_id from public.community_memberships order by community_id")).rows;
     assert.equal(rows.length, 2);
     assert.ok(rows.every((row) => row.user_id === bob));
-    assert.equal((await db.query("select * from public.communities")).rows.length, 2);
-    assert.equal((await db.query("select * from public.communities where id = $1", [publicId])).rows.length, 0);
+    assert.equal((await db.query("select id,name,slug,description,visibility,join_policy,created_at,updated_at from public.communities")).rows.length, 2);
+    assert.equal((await db.query("select id,name,slug,description,visibility,join_policy,created_at,updated_at from public.communities where id = $1", [publicId])).rows.length, 0);
     assert.equal((await landing("alice-private"))[0].viewer_role, "member");
     assert.equal((await db.query("select * from public.private_profiles where user_id = $1", [alice])).rows.length, 0);
   });
@@ -535,8 +538,8 @@ describe("community database security and invariants", { concurrency: false }, (
     await asUser(alice);
     assert.deepEqual((await db.query("update public.community_memberships set role = 'admin' returning *")).rows, []);
     assert.deepEqual((await db.query("delete from public.community_memberships returning *")).rows, []);
-    assert.deepEqual((await db.query("update public.communities set visibility = 'public' returning *")).rows, []);
-    assert.deepEqual((await db.query("delete from public.communities returning *")).rows, []);
+    assert.deepEqual((await db.query("update public.communities set visibility = 'public' returning id")).rows, []);
+    assert.deepEqual((await db.query("delete from public.communities returning id")).rows, []);
     await denied("insert into public.community_memberships(community_id, user_id, role) values ($1, $2, 'member')", [bobId, alice]);
     await denied("insert into public.communities(owner_user_id, name, slug, visibility, join_policy) values ($1, 'Forged', 'forged-owner', 'public', 'instant')", [alice]);
   });
@@ -555,7 +558,7 @@ describe("community database security and invariants", { concurrency: false }, (
       await db.query(`update auth.users set ${state} where id = $1`, [alice]);
       await asUser(alice);
       assert.deepEqual((await db.query("select * from public.community_memberships")).rows, []);
-      assert.deepEqual((await db.query("select * from public.communities")).rows, []);
+      assert.deepEqual((await db.query("select id,name,slug,description,visibility,join_policy,created_at,updated_at from public.communities")).rows, []);
       assert.deepEqual(await landing("alice-private"), []);
       assert.equal((await landing("alice-public"))[0].viewer_role, null);
       await denied("select public.create_community('Denied', 'denied-user', '', 'public', 'instant')");
