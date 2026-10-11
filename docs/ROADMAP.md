@@ -1,12 +1,12 @@
 # GrowUP roadmap
 
-Status: proposed sequence, not release dates or rollout authorization. Checkpoint `0a5a0cf` includes completed invitations. [Role-management Pass 1](COMMUNITY_ROLE_MANAGEMENT.md) is implemented locally; independent backend/security review passed and local backend validation is complete, including all 125 real PostgreSQL concurrency cases. Hosted rollout, browser acceptance and final management UI are not done. Confirm later phase scope separately.
+Status: proposed sequence, not release dates or rollout authorization. Checkpoint `0edf7d5` includes the complete frozen, hosted-accepted [role-management backend](COMMUNITY_ROLE_MANAGEMENT.md). Final UI is implemented locally, uncommitted/unpushed; independent UI review and browser acceptance remain pending. Confirm later phase scope separately.
 
 Security, accessibility, authorization, and relevant tests belong to every phase. Basic moderation and operational controls must exist before exposing the associated features to real users.
 
 | Phase | Intended scope and exit condition |
 | --- | --- |
-| 1 — Foundation / Auth / Communities | Auth/profiles/community/settings/requests/invitations are included in the accepted source checkpoint `0a5a0cf`. [Role-management Pass 1](COMMUNITY_ROLE_MANAGEMENT.md) is local; its local backend validation passed (1,221 tests, including 125 real PostgreSQL concurrency cases). Hosted schema/security and Auth/PostgREST acceptance, final management UI and browser acceptance remain pending; Phase 1 is not complete. Transfers, Google and recovery completion remain deferred. |
+| 1 — Foundation / Auth / Communities | Auth/profiles/community/settings/requests/invitations and the frozen role-management backend are included at `0edf7d5`. Backend local/hosted acceptance passed. Final member-management UI is local and uncommitted, pending independent review and browser acceptance; Phase 1 is not complete. Transfers, Google and recovery completion remain deferred. |
 | 2 — Forum / Community experience | Posts, comments, member directory, further community settings, and configurable landing behavior for available features. Basic discovery cards/categories/search and an agreed initial recommendation rule. Exit with coherent permissions, safe content/media handling, and basic reporting/moderation. |
 | 3 — Courses | Modules, lessons, content/media, completion/progress, and explicit resource entitlements. Establish the minimum tier/access representation needed for courses without Stripe or checkout; resolve assignment rules first. Exit with tested access restrictions and an approved video-delivery approach. |
 | 4 — Chat / DMs / Realtime | Community channels, durable messages, private DMs, and authorized realtime/presence. Global discussion only after its audience is agreed. Exit with blocking/reporting, rate limits, participant isolation, and verified permission revocation. |
@@ -19,4 +19,4 @@ Security, accessibility, authorization, and relevant tests belong to every phase
 
 ## Recommended exact next task
 
-The uncommitted [role-management Pass 1 backend](COMMUNITY_ROLE_MANAGEMENT.md) has completed independent backend/security review and local validation. Obtain separate authorization for commit/push and the next UI or hosted-validation slice. The source checkpoint is `0a5a0cf`; invitations are complete for this task and their semantics remain frozen. The role-management migration has not been applied remotely. Hosted rollout, browser acceptance and final member-management UI remain separate later gates. Commit/push/deploy only when requested.
+Independently review the local [final role-management UI](COMMUNITY_ROLE_MANAGEMENT.md#final-ui--local-implementation), then perform authorized browser acceptance across roles, stale state, keyboard interactions and mobile/tablet/desktop viewports. Backend rollout and hosted acceptance are already complete at the supplied `0edf7d5` checkpoint. Keep UI changes uncommitted/unpushed until review; commit/push/deploy only when requested. Do not reopen the frozen backend without a concrete UI incompatibility.

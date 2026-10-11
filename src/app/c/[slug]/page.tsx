@@ -54,6 +54,9 @@ export default async function CommunityPage({ params }: { params: Promise<{ slug
       <Link href={`/c/${community.slug}/requests`} prefetch={false} className="block text-sm underline">Review membership requests</Link>}
     {(community.viewer_role === "owner" || community.viewer_role === "admin") &&
       <Link href={`/c/${community.slug}/invitations`} prefetch={false} className="block text-sm underline">Manage invitations</Link>}
+    {(community.viewer_role === "owner" || community.viewer_role === "admin") &&
+      <Link href={`/c/${community.slug}/members`} prefetch={false} className="block text-sm underline">Manage members</Link>}
+    {community.viewer_role && <Link href={`/c/${community.slug}/membership`} prefetch={false} className="block text-sm underline">Your management name</Link>}
     {community.viewer_role === "owner" && <CommunitySettingsForm community={{
       id: community.id, name: community.name, description: community.description,
       visibility: community.visibility, join_policy: community.join_policy,

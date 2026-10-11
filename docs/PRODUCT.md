@@ -1,6 +1,6 @@
 # GrowUP product
 
-Status: checkpoint `0a5a0cf` includes completed invitations. The current accepted slice is [Community Role Management Pass 1](COMMUNITY_ROLE_MANAGEMENT.md): backend/services/tests implemented locally, independent backend/security review passed and local backend validation complete with 1,221 tests passed, including 125 real PostgreSQL concurrency cases. Hosted rollout, hosted Auth/PostgREST acceptance, final management UI and browser acceptance are not done; the feature and Phase 1 remain incomplete. General recovery completion remains deferred. “Confirmed” means required by the product vision, not necessarily part of the first release.
+Status: checkpoint `0edf7d5` includes the complete, frozen and hosted-accepted role-management backend. The [final management UI](COMMUNITY_ROLE_MANAGEMENT.md#final-ui--local-implementation) is implemented locally, uncommitted/unpushed pending independent review and browser acceptance. Phase 1 remains incomplete; general recovery completion remains deferred. “Confirmed” means required by the product vision, not necessarily part of the first release.
 
 ## Vision
 

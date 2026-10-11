@@ -1,6 +1,21 @@
-# Community role management — Pass 1
+# Community role management
 
-The frozen contract supplied for checkpoint `0a5a0cfa96413539c27aa896cffda94ce0a6a03c` is implemented locally, uncommitted. This pass includes database, services, Server Actions and tests only. **Independent backend/security review PASSED; local backend validation COMPLETE; all 125 independent-session PostgreSQL cases EXECUTED AND PASSED. Hosted rollout, hosted schema/security verification, hosted Auth/PostgREST acceptance, final management UI and browser acceptance are NOT DONE.** The feature as a whole and Phase 1 are not complete. Invitation application code, migrations and semantics remain unchanged.
+Current status — 2026-10-10: backend complete and frozen at `0edf7d5c2c4d072db541e3d468c4d90baeb692de`. The supplied checkpoint records passed architecture/security review, 1,221 local tests (including 125 real PostgreSQL concurrency cases), GitHub CI, hosted migration/schema/security verification and real hosted Auth/PostgREST acceptance: 1,046 assertions, 100 authority combinations, 16 self-mutation cases and 10 targeted concurrency scenarios, with zero production backend defects. These hosted results are supplied acceptance evidence, not checks repeated during UI implementation.
+
+The final UI is implemented locally, uncommitted and unpushed, pending independent local review and browser acceptance. Phase 1 remains incomplete. No hosted Supabase change, migration, commit, push or deployment was performed in this UI slice. The backend implementation details and dated validation records below describe Pass 1; their historical results are preserved.
+
+## Final UI — local implementation
+
+- `/c/[slug]/members` follows the existing sibling requests/invitations destinations. Landing navigation exposes it to owner/admin; the roster RPC independently enforces authority. No parallel settings system or new dependency was added.
+- `/c/[slug]/membership` is linked for every current member. There was no member settings destination, so this small community-specific page holds only the self-service management name. A server-only reader selects only `membership_id, management_display_name`, scoped to verified caller and community through existing own-membership RLS. No new database surface is needed.
+- Responsive roster cards show optional escaped labels (fallback: “Unnamed member”), role, UTC joining time and “you”. Duplicate labels remain allowed and unverified. Opaque lifetime locators are transport values only, never visible identity.
+- Owner controls cover other nonowners; admin controls cover other members/moderators only. Direct “Make member/moderator/admin” buttons exclude same-role mutations. Self and owner rows have no controls. Removal requires a labelled confirmation checkbox and explains removal is not a ban and readmission may be possible.
+- Reads use paired exact timestamp/UUID keysets, 20 per page, first/next navigation, loading, empty/error/end states. A full final page may lead to an empty next page because the API intentionally has no total/lookahead flag.
+- All mutations use the unchanged Server Actions. Results trigger `router.refresh()`; no optimistic role change or automatic mutation replay. Confirmed removal/already-absent hides the old row immediately. Errors hide stale roster data; forms block further mutations until explicit Refresh status resets action state, consistent with existing forms.
+- The name form shows current value, set/change/blank-to-clear, an explicit Clear field control followed by Save, restricted-visibility notice, Unicode-codepoint count and shared validation. Outer ASCII spaces trim; controls and over-80-codepoint names fail. The server remains authoritative.
+- Native labelled forms, keyboard-operable controls, status/alert feedback with focus, pending/disabled semantics, wrapping actions and narrow cards follow existing styling. No installed shadcn dialog/menu components existed; no new component package was required.
+
+UI validation: 80 focused rendering/orchestration tests and 1,176 integrated local tests passed. The unchanged 125 opt-in PostgreSQL concurrency cases were not rerun in this UI slice; prior accepted evidence remains separate. Tests exercise the actual routes/components/actions/services with mocked framework/provider boundaries and existing PGlite regressions. Interactive browser, viewport, keyboard and hosted UI acceptance remain pending. Final lint, strict typecheck, production build and tracked/untracked whitespace validation passed using Node 24.21.0 and npm 11.19.0. No dependency or lockfile change.
 
 ## Migration and identity
 
@@ -84,6 +99,6 @@ The earlier Windows execution block was resolved by the subsequent WSL2 run. It 
 
 Current-source registration inspection confirms 51 / 34 / 40 concurrency cases and both corrected inverse-account orientations. A fresh regression/feature run excluding the three separately verified concurrency files passed **1,096 tests, 0 failures, 0 skips**. The accepted prior PostgreSQL execution supplies the other 125 passes; these are 1,221 distinct tests, not repeated runs added together. Documentation-only reconciliation does not require rerunning concurrency. Final local lint, strict typecheck, production build (NEXT_TELEMETRY_DISABLED=1) and tracked/untracked whitespace checks passed. SHA-256 comparison against review-start files confirmed no production or test source changed during this review; nothing was staged.
 
-### Remaining gates
+### Remaining gates at the historical Pass 1 review
 
 Local backend implementation, independent backend/security review and real PostgreSQL concurrency validation are complete. The role-management migration has **not** been applied to hosted Supabase. Hosted migration/type/schema/security verification and real Auth/PostgREST behavioral acceptance remain undone. Final member-management UI is not implemented and browser acceptance is not done. The complete role-management feature and Phase 1 remain incomplete. No paid infrastructure or production domain is required for this backend slice. No commit, push, deployment, ownership transfer, ban system or hosted configuration change was performed.
