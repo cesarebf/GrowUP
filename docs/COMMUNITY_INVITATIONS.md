@@ -1,8 +1,16 @@
-# Phase 1 community invitations — accepted contract and local implementation
+# Phase 1 community invitations — accepted contract and implementation
+
+Current status — 2026-10-11: **Community Invitations COMPLETE for Phase 1**, committed at `0a5a0cf` and included in current checkpoint `c29e6ba23f95b22e6eec5b9d03e341111245f061`. The product owner confirms that backend implementation and independent review, hosted migration/schema/security verification, real hosted Auth/PostgREST behavioral acceptance and browser acceptance were completed and accepted before Community Role Management began. Hosted migration was applied as `20261005221026 / community_invitations`; the local filename remains `20260930175249_community_invitations.sql`. This records the accepted rollout, not authorization to rename/replay migrations or repair tracking.
+
+Confirmation, acceptance, revocation and replay were verified, including private/invitation-only communities and pending membership requests. Invitation-token logging inspection found no raw token in the accessible provider/log surfaces inspected; this does not claim visibility into inaccessible provider logs. No blocking token-logging issue or production invitation defect remained. Final hosted cleanup/baseline verification passed. These are supplied product-owner acceptance results, not checks repeated in this documentation reconciliation. No invitation gate blocks Phase 1 closure; production Auth/HTTPS, wider-release abuse controls and other explicit launch deferrals remain separate.
+
+The original Pass 1/Pass 2 records and numbered planning contract below remain historical evidence. Their then-pending review/rollout/acceptance gates have since been completed as summarized above; their original test counts and evidence limits are unchanged.
+
+## Historical pre-commit status
 
 Status: **Pass 1 + Pass 2 implemented locally, uncommitted; ready for final integrated review**. The user reports independent backend/security review **PASS WITH NON-BLOCKING NOTES**, followed by the microsecond-precision correction and 152 passing targeted tests. Pass 2 preserves that backend. Work began from `699775f50ccd2537d2f64d50106213199ead68f0` (`docs: plan community invitations`), following requests at `937dbc4`. No hosted mutation, remote migration, tracking repair, commit, push or deployment. The numbered design remains the accepted contract; the records below distinguish local evidence from hosted release gates.
 
-## Pass 2 UI/application record
+## Pass 2 UI/application record (historical validation)
 
 - Dynamic `/c/[slug]/invitations` authorizes the current owner/admin before reading history; the existing RPC independently authorizes again. Landing navigation exposes management only to those roles. Successful list reads show newest-first safe history, 20 rows, with paired microsecond-preserving cursors. No historical token, hash or actor identity is rendered.
 - A shared create/revoke action state prevents overlapping or repeated submissions. Revocation requires confirmation and targets the exact invitation. Returned accepted/expired states are reported without claiming revocation. Uncertain results lock further mutations until full refresh; no optimistic terminal state or retry. Existing Server Action revalidation reconciles history and request/community surfaces.
@@ -493,7 +501,7 @@ Community closure/account erasure and long-term audit/backup retention remain la
 
 ## 25. Readiness, cost, and domain timing
 
-**Local Pass 1 + Pass 2 are ready for final integrated review before commit/push.** The reported independent Pass 1 review and corrective validation precede the locally validated UI described above. Hosted rollout/validation and public release remain later authorized work; planning matrices do not claim hosted completion.
+**Current readiness: COMPLETE for Phase 1.** Independent review, commit, hosted rollout/schema/security verification, real Auth/PostgREST and browser acceptance, accessible provider-token-log inspection and cleanup/baseline verification are accepted as recorded above. The planning matrices and original local validation records remain historical; public release remains subject to separate readiness gates.
 
 **Can the entire Phase 1 invitation admission slice be developed and validated with localhost + existing development Supabase and no purchased domain? Yes.** Localhost supplies route/copy/production-build browser behavior; disposable local PostgreSQL supplies deterministic races; existing eligible development Auth sessions supply real PostgREST acceptance. Signup continuation uses the existing development verification flow or transparently identified authorized fixtures, not newly purchased email infrastructure.
 

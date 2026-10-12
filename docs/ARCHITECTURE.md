@@ -1,6 +1,6 @@
 # GrowUP architecture
 
-Status: checkpoint `0edf7d5` contains the frozen, hosted-accepted [role-management backend](COMMUNITY_ROLE_MANAGEMENT.md). Final UI is implemented locally, uncommitted/unpushed; independent local UI review and browser acceptance remain pending. No hosted state was inspected or changed in this UI slice. Architecture beyond approved slices remains proposed.
+Status: checkpoint `c29e6ba23f95b22e6eec5b9d03e341111245f061` contains complete [role management](COMMUNITY_ROLE_MANAGEMENT.md): frozen backend, hosted rollout/behavioral acceptance, final UI, independent UI/security review and real browser acceptance. UI is committed/pushed and post-push CI is green. Architecture beyond approved slices remains proposed; see [ROADMAP](ROADMAP.md) for phase status.
 
 ## Shape and boundaries
 
@@ -21,7 +21,7 @@ Next.js documents server data boundaries and the need to authorize server entry 
 
 ## Tenancy and authorization
 
-The [approved Phase 1 authorization matrix](PHASE_1_DECISIONS.md) guides server authorization and database allow/deny tests. Implementation covers email/password Auth, profiles, communities, instant join/leave, owner settings, requests, invitations and role management. Settings cancel ineligible pending requests without changing invitations, slugs, ownership or memberships. Role management uses the [frozen backend contract](COMMUNITY_ROLE_MANAGEMENT.md); hosted acceptance and all 125 real PostgreSQL concurrency cases passed. Browser acceptance of the local final UI is pending. Profiles use stable Auth user IDs independent of email/password.
+The [approved Phase 1 authorization matrix](PHASE_1_DECISIONS.md) guides server authorization and database allow/deny tests. Implementation covers email/password Auth, profiles, communities, instant join/leave, owner settings, requests, invitations and role management. Settings cancel ineligible pending requests without changing invitations, slugs, ownership or memberships. Role management uses the [frozen backend contract](COMMUNITY_ROLE_MANAGEMENT.md); hosted acceptance and all 125 real PostgreSQL concurrency cases passed. Independent UI/security review and real browser acceptance of the final UI passed. Profiles use stable Auth user IDs independent of email/password.
 
 Role-management UI uses dynamic sibling community routes `/c/[slug]/members` and `/c/[slug]/membership`, existing mutation actions, and fresh server reads after results. The only new server reader uses the existing RLS-protected own-membership SELECT, explicitly scoped to the verified caller and community and projecting only lifetime locator/name. UI role filtering is presentation, never authorization. No schema, RPC or frozen service/action change is introduced.
 

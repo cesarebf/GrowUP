@@ -1,8 +1,8 @@
 # Community role management
 
-Current status — 2026-10-10: backend complete and frozen at `0edf7d5c2c4d072db541e3d468c4d90baeb692de`. The supplied checkpoint records passed architecture/security review, 1,221 local tests (including 125 real PostgreSQL concurrency cases), GitHub CI, hosted migration/schema/security verification and real hosted Auth/PostgREST acceptance: 1,046 assertions, 100 authority combinations, 16 self-mutation cases and 10 targeted concurrency scenarios, with zero production backend defects. These hosted results are supplied acceptance evidence, not checks repeated during UI implementation.
+Current status — 2026-10-11: **Community Role Management COMPLETE** at `c29e6ba23f95b22e6eec5b9d03e341111245f061` (`feat: add community role management UI`), committed and pushed to `main`. Backend implementation, architecture/security review, hosted rollout, hosted schema/security verification and hosted behavioral acceptance are complete. Final UI, independent UI/security review and real Edge/Playwright browser acceptance are complete. Post-push [GitHub Actions run 38144616210](https://github.com/cesarebf/GrowUP/actions/runs/38144616210) is completed/successful, including dependency install, lint, strict typecheck, Auth/database policy tests and production build.
 
-The final UI is implemented locally, uncommitted and unpushed, pending independent local review and browser acceptance. Phase 1 remains incomplete. No hosted Supabase change, migration, commit, push or deployment was performed in this UI slice. The backend implementation details and dated validation records below describe Pass 1; their historical results are preserved.
+Accepted backend evidence: 1,221 pre-UI local tests, including 125 real PostgreSQL concurrency cases; 1,046 hosted assertions, 100 authority-matrix combinations, 16 explicit self-mutation cases and 10 targeted hosted concurrency scenarios; zero production backend defects. Browser acceptance covered owner/admin/moderator/member/unrelated users, stale authority/targets/membership, keyboard interactions, mobile/tablet/desktop viewports and cross-community state isolation, with zero defects requiring correction. All disposable hosted fixtures were cleaned and the hosted baseline restored exactly. These are the product owner's supplied acceptance results, not checks repeated during this documentation reconciliation; Git refs and CI were independently verified. The backend details and dated validation records below remain historical Pass 1 evidence.
 
 ## Final UI — local implementation
 
@@ -15,7 +15,14 @@ The final UI is implemented locally, uncommitted and unpushed, pending independe
 - The name form shows current value, set/change/blank-to-clear, an explicit Clear field control followed by Save, restricted-visibility notice, Unicode-codepoint count and shared validation. Outer ASCII spaces trim; controls and over-80-codepoint names fail. The server remains authoritative.
 - Native labelled forms, keyboard-operable controls, status/alert feedback with focus, pending/disabled semantics, wrapping actions and narrow cards follow existing styling. No installed shadcn dialog/menu components existed; no new component package was required.
 
-UI validation: 80 focused rendering/orchestration tests and 1,176 integrated local tests passed. The unchanged 125 opt-in PostgreSQL concurrency cases were not rerun in this UI slice; prior accepted evidence remains separate. Tests exercise the actual routes/components/actions/services with mocked framework/provider boundaries and existing PGlite regressions. Interactive browser, viewport, keyboard and hosted UI acceptance remain pending. Final lint, strict typecheck, production build and tracked/untracked whitespace validation passed using Node 24.21.0 and npm 11.19.0. No dependency or lockfile change.
+UI validation: 80 focused rendering/orchestration tests and 1,176 integrated local tests passed. The unchanged 125 opt-in PostgreSQL concurrency cases were not rerun in this UI slice; prior accepted evidence remains separate. Tests exercise the actual routes/components/actions/services with mocked framework/provider boundaries and existing PGlite regressions. Independent UI/security review and real browser acceptance subsequently passed as recorded above. Final lint, strict typecheck, production build and tracked/untracked whitespace validation passed using Node 24.21.0 and npm 11.19.0. No dependency or lockfile change.
+
+Accepted non-blocking UX debt:
+
+1. Settled member mutations require explicit **Refresh status** before another mutation.
+2. A full terminal roster page can expose one empty **Next** page because the API has no lookahead/total.
+
+Both are accepted polish debt, not feature or Phase 1 blockers. Any improvement requires separately scoped future UX work. [Phase 1 is COMPLETE](ROADMAP.md#phase-1-exit-review) under its approved scope and explicit deferrals.
 
 ## Migration and identity
 

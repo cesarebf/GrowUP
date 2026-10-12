@@ -1,6 +1,6 @@
 # GrowUP Phase 1 authorization and product decisions
 
-Status: **approved decisions, with the product owner’s amendments**. Source checkpoint `0edf7d5` includes the complete frozen [role-management backend](COMMUNITY_ROLE_MANAGEMENT.md), with local and hosted acceptance passed. Final UI is implemented locally, uncommitted/unpushed pending independent review and browser acceptance. Recovery completion remains deferred. No paid infrastructure or production domain is required.
+Status — 2026-10-11: **approved decisions, with the product owner’s amendments; Phase 1 COMPLETE** under the existing scope and explicit deferrals. Source checkpoint `c29e6ba23f95b22e6eec5b9d03e341111245f061` includes complete [role management](COMMUNITY_ROLE_MANAGEMENT.md): backend, hosted rollout/behavioral acceptance, final UI, independent UI/security review and real browser acceptance. UI is committed/pushed and post-push CI is green. Invitations are also complete and accepted. Recovery completion and production-provider readiness remain deferred. No paid infrastructure or production domain is required for Phase 1 closure.
 
 ## Visibility and joining
 
@@ -8,7 +8,7 @@ Visibility controls discovery and nonmember previews; joining controls admission
 
 | Visibility | Approved discovery behavior | Admission planning |
 | --- | --- | --- |
-| Public | Discoverable through future GrowUP home/search/discovery; content remains member-gated by default. | Instant and approval implemented; invitations have local Pass 1 backend; paid deferred. |
+| Public | Discoverable through future GrowUP home/search/discovery; content remains member-gated by default. | Instant, approval and invitations implemented and accepted; paid deferred. |
 | Unlisted | Accessible by direct link; excluded from normal discovery. A link is not permission to read member content. | Same admission implementations as public. |
 | Private | Not publicly discoverable. An active invitation permits only the bounded capability preview. Ordinary nonmember slug landing remains unavailable. | Unsolicited instant/approval denied; valid explicit invitation admits across all stored policies. |
 
@@ -16,7 +16,7 @@ Visibility controls discovery and nonmember previews; joining controls admission
 | --- | --- |
 | Instant (approved) | Verified, eligible user explicitly joins only public/unlisted communities with `join_policy = instant`; current membership is created once, as `member`. Private + instant remains valid stored configuration but cannot admit users. |
 | Request approval (approved; hosted development) | Eligible nonmember explicitly submits to public/unlisted + approval_required with a shared attempt-specific name. Owner/admin approves or rejects; moderator cannot review. Requests grant no access. Approval atomically creates only member. |
-| Invitation (approved; backend local) | Current owner/admin issues a revocable opaque capability, not email-bound, expiring after exactly 168 elapsed hours. An eligible authenticated holder explicitly accepts as member. Existing members keep their exact membership and leave the invite unused; same-accepter replay never restores membership. Policy/visibility changes or creator demotion do not invalidate existing grants. |
+| Invitation (approved; complete and hosted-accepted) | Current owner/admin issues a revocable opaque capability, not email-bound, expiring after exactly 168 elapsed hours. An eligible authenticated holder explicitly accepts as member. Existing members keep their exact membership and leave the invite unused; same-accepter replay never restores membership. Policy/visibility changes or creator demotion do not invalidate existing grants. |
 | Paid access, later | Defer to Phase 5. Payment entitlement is an additional gate; payment must not bypass bans or required approval. Do not collect payments or create fake subscriptions in Phase 1. |
 
 Approved current lifecycle: a `community_memberships` row represents current membership, with no status column. Voluntary leave deletes the row and revokes membership-derived access, regardless of current admission policy; already-absent leave is idempotent. Members, moderators, and admins may leave. Owners cannot leave until a future accepted transfer or approved closure workflow resolves ownership. Eligible former members may immediately rejoin when current rules permit instant admission, always as `member`; former staff roles are never restored. Already-current members retain their role on an idempotent join.
@@ -76,7 +76,7 @@ Do not collect real name, date of birth, phone, or location for the initial prof
 
 Confirm provider setup and production email delivery before release. Technical references: Supabase [password/verification/recovery](https://supabase.com/docs/guides/auth/passwords), [Google sign-in](https://supabase.com/docs/guides/auth/social-login/auth-google), and [identity linking](https://supabase.com/docs/guides/auth/auth-identity-linking). These establish available mechanisms, not approval of GrowUP's proposed policies.
 
-## Remaining decisions and authorized implementation slice
+## Remaining decisions and completed Phase 1 slice
 
 Resolve these before the affected future implementation; they do not block the implemented Auth or community foundation:
 
@@ -86,4 +86,6 @@ Resolve these before the affected future implementation; they do not block the i
 4. Exact globally public versus broader community-visible profile fields. Sensitive account data stays private; public exposure is conservative and future location is separate and opt-in.
 5. When to add Google sign-in and its provider/account-linking configuration.
 
-The current authorized slice is the final [Community Role Management UI](COMMUNITY_ROLE_MANAGEMENT.md#final-ui--local-implementation), using the complete frozen backend at `0edf7d5`. Owner manages other nonowners; admin manages only other members/moderators; moderator/member have no management authority. Self and owner targets are denied. Every current member may manage their own optional community management name. Removal permits immediate eligible readmission as member with a new membership UUID. Transfers, bans and public profiles/directory remain outside scope. Leave UI changes uncommitted/unpushed; do not mutate hosted Supabase, create migrations or deploy. Backend validation and hosted acceptance are complete; UI independent review and browser acceptance remain pending. Phase 1 is not complete.
+The final [Community Role Management UI](COMMUNITY_ROLE_MANAGEMENT.md#final-ui--local-implementation) was the last authorized Phase 1 slice and is complete. Owner manages other nonowners; admin manages only other members/moderators; moderator/member have no management authority. Self and owner targets are denied. Every current member may manage their own optional community management name. Removal permits immediate eligible readmission as member with a new membership UUID. Backend validation, hosted rollout/acceptance, independent UI/security review and real browser acceptance are complete; the UI is committed/pushed with green CI.
+
+Phase 1 closure changes no authorization policy. Transfers, co-ownership/closure, bans and broader moderation, public profiles/directory, OAuth, payments/paid access, general recovery completion/provider-production readiness and production domain/infrastructure remain outside the completed scope. Existing settings/slug restrictions, future role permissions and unresolved decisions above remain unchanged. Future phases must not reinterpret these deferrals or product-vision requirements as approved implementation work. The next task is Phase 2 planning as described in [ROADMAP](ROADMAP.md), followed by separate approval of an implementation slice.
